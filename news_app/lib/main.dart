@@ -15,16 +15,23 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        brightness: Brightness.dark, // Enables dark theme
-        useMaterial3: true,
-        colorScheme: const ColorScheme.dark(
-          primary: Colors.blueAccent, // Accent color
-          secondary: Colors.teal, // Secondary color
-        ),
-        textTheme: const TextTheme(
-          bodyMedium: TextStyle(color: Colors.white), // General text color
-        ),
-      ),
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.deepPurple, // Primary color for light theme
+            brightness: Brightness.light, // Light theme
+            shadow: Colors.black45,
+            outline: Colors.black26,
+          ),
+          iconTheme: IconThemeData(color: Colors.black38)),
+      darkTheme: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.deepPurple, // Primary color for dark theme
+              brightness: Brightness.dark, // Dark theme
+              shadow: Colors.white12,
+              outline: Colors.white24),
+          iconTheme: IconThemeData(color: Colors.white38)),
+      themeMode: ThemeMode.system,
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
@@ -79,16 +86,18 @@ class _MyHomePageState extends State<MyHomePage> {
           width: 128,
           height: 40,
           decoration: BoxDecoration(
-            color: Colors.white10, // Background color for the search bar
+            color: Theme.of(context).iconTheme.color?.withOpacity(0.075),
             borderRadius: BorderRadius.circular(20), // Circular edges
           ),
-          child: const TextField(
+          child: TextField(
             decoration: InputDecoration(
               hintText: "Search",
-              hintStyle: TextStyle(color: Colors.grey),
-              prefixIcon: Icon(Icons.search, color: Colors.grey),
+              hintStyle: const TextStyle(color: Colors.grey),
+              prefixIcon:
+                  Icon(Icons.search, color: Theme.of(context).iconTheme.color),
               border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
             ),
           ),
         ),
@@ -115,7 +124,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // than having to individually change instances of widgets.
     return Scaffold(
         appBar: buildAppBar(context),
-        body: Padding(
+        body: const Padding(
           padding: EdgeInsets.symmetric(horizontal: 12.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,27 +141,27 @@ class _MyHomePageState extends State<MyHomePage> {
               // const SizedBox(
               //   height: 16.0,
               // ),
-              const SummaryCard(
+              SummaryCard(
                 summary:
                     """Quantum chips revolutionize AI. EcoSpace goes carbon-neutral. Urban green boosts biodiversity. AI restores artifacts. Smart jerseys aid athletes. Pacific cleanup revives marine life. Fusion food trends soar. Arctic research deepens. VR eases PTSD. E-sports hits billion-dollar mark.""",
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               Padding(
-                padding: const EdgeInsets.only(left: 8.0),
-                child: Text('For you',
-                    style: TextStyle(
+                  padding: EdgeInsets.only(left: 12.0),
+                  child: Text('For you',
+                      style: TextStyle(
                         fontFamily: 'Montserrat',
                         fontWeight: FontWeight.bold,
                         fontSize: 18.0,
-                        color: Colors.white.withOpacity(0.9))),
-              ),
-              const SizedBox(
+                      ))),
+              SizedBox(
                 height: 4.0,
               ),
 
               const SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
+                clipBehavior: Clip.none,
                 child: Row(
                   children: [
                     NewsCard(
