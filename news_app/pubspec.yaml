@@ -73,6 +73,28 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
+    - family: Raleway
+      fonts:
+        - asset: fonts/Raleway/Raleway-BlackItalic.ttf
+        - asset: fonts/Raleway/Raleway-Italic-VariableFont_wght.ttf
+        - asset: fonts/Raleway/Raleway-SemiBold.ttf
+        - asset: fonts/Raleway/Raleway-Bold.ttf
+        - asset: fonts/Raleway/Raleway-Italic.ttf
+        - asset: fonts/Raleway/Raleway-SemiBoldItalic.ttf
+        - asset: fonts/Raleway/Raleway-BoldItalic.ttf
+        - asset: fonts/Raleway/Raleway-Light.ttf
+        - asset: fonts/Raleway/Raleway-Thin.ttf
+        - asset: fonts/Raleway/Raleway-ExtraBold.ttf
+        - asset: fonts/Raleway/Raleway-LightItalic.ttf
+        - asset: fonts/Raleway/Raleway-ThinItalic.ttf
+        - asset: fonts/Raleway/Raleway-ExtraBoldItalic.ttf
+        - asset: fonts/Raleway/Raleway-Medium.ttf
+        - asset: fonts/Raleway/Raleway-VariableFont_wght.ttf
+        - asset: fonts/Raleway/Raleway-ExtraLight.ttf
+        - asset: fonts/Raleway/Raleway-MediumItalic.ttf
+        - asset: fonts/Raleway/Raleway-ExtraLightItalic.ttf
+        - asset: fonts/Raleway/Raleway-Regular.ttf
+
     - family: Montserrat
       fonts:
         - asset: fonts/Montserrat/Montserrat-Black.ttf
