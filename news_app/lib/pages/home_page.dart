@@ -3,7 +3,9 @@ import 'package:news_app/api.dart';
 import 'package:news_app/widgets/news_card.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final void Function(String)? onMessage;
+
+  const HomePage({super.key, this.onMessage});
 
   @override
   State<HomePage> createState() => HomePageState();
@@ -62,8 +64,12 @@ class HomePageState extends State<HomePage> {
           ),
 
           Column(
-              children: addDividers(
-                  INApi.getNews().map((e) => INNewsCard(news: e)).toList())),
+              children: addDividers(INApi.getNews()
+                  .map((e) => INNewsCard(
+                        news: e,
+                        onNavPop: widget.onMessage,
+                      ))
+                  .toList())),
 
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 32),

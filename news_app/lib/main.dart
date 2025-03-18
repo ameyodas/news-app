@@ -22,13 +22,18 @@ class MyIconData {
 
 class NewsAppState extends State<NewsApp> {
   int _currentPageIndex = 0;
-  final List<Widget> _pages = const [
-    HomePage(),
-    SearchPage(),
-    SearchPage(),
-    SearchPage(),
-    SearchPage()
-  ];
+  late List<Widget> _pages;
+
+  NewsAppState() {
+    _pages = [
+      HomePage(onMessage: onMessage),
+      SearchPage(onMessage: onMessage),
+      SearchPage(onMessage: onMessage),
+      SearchPage(onMessage: onMessage),
+      SearchPage(onMessage: onMessage)
+    ];
+  }
+
   final List<MyIconData> _pageIconData = [
     MyIconData(normal: Icons.home, active: Icons.home_filled),
     MyIconData(normal: Icons.play_arrow_rounded, active: Icons.play_circle),
@@ -36,6 +41,14 @@ class NewsAppState extends State<NewsApp> {
     MyIconData(normal: Icons.bookmark_outline, active: Icons.bookmark),
     MyIconData(normal: Icons.email_outlined, active: Icons.email)
   ];
+
+  void onMessage(String message) {
+    if (message == 'search') {
+      setState(() {
+        _currentPageIndex = 2;
+      });
+    }
+  }
 
   BottomNavigationBar buildNavBar(BuildContext context) {
     return BottomNavigationBar(
@@ -92,6 +105,18 @@ class NewsAppState extends State<NewsApp> {
             bottomNavigationBarTheme: const BottomNavigationBarThemeData(
                 selectedItemColor: Colors.black,
                 unselectedItemColor: Colors.black45),
+            elevatedButtonTheme: ElevatedButtonThemeData(
+                style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: const Color.fromARGB(255, 64, 64, 64),
+                    elevation: 0,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    visualDensity: VisualDensity.compact)),
+            iconTheme: const IconThemeData(size: 18.0, color: Colors.black),
             appBarTheme: const AppBarTheme(color: Colors.white)),
         darkTheme: ThemeData.dark().copyWith(
             primaryColor: Colors.blueGrey,
@@ -99,8 +124,21 @@ class NewsAppState extends State<NewsApp> {
             bottomNavigationBarTheme: const BottomNavigationBarThemeData(
                 selectedItemColor: Colors.white,
                 unselectedItemColor: Colors.white54),
+            elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ElevatedButton.styleFrom(
+                  foregroundColor: const Color.fromARGB(255, 32, 32, 32),
+                  backgroundColor: Colors.white,
+                  elevation: 0,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  visualDensity: VisualDensity.compact),
+            ),
+            iconTheme: const IconThemeData(size: 18.0, color: Colors.white),
             appBarTheme: const AppBarTheme(color: Colors.black)),
-        themeMode: ThemeMode.light,
+        themeMode: ThemeMode.dark,
         home: Scaffold(
             appBar: buildAppBar(context),
             bottomNavigationBar: buildNavBar(context),
