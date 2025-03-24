@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:news_app/api.dart';
+import 'package:news_app/news.dart';
 import 'package:news_app/widgets/news_card.dart';
 
 class HomePage extends StatefulWidget {
@@ -23,31 +24,26 @@ class HomePageState extends State<HomePage> {
     return result;
   }
 
+  List<INNews>? news;
+
+  void beginFetchNews() {
+    INFetchApi.getNews().then((news) {
+      setState(() {
+        this.news = news;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (news == null) {
+      beginFetchNews();
+    }
+
     return SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Stack(alignment: AlignmentDirectional.centerStart, children: [
-          //   Container(
-          //     //clipBehavior: Clip.antiAlias,
-          //     width: double.infinity,
-          //     height: 100,
-          //     // decoration: BoxDecoration(
-          //     //     borderRadius: BorderRadius.circular(this.roundness - 8.0)),
-          //     child: Image.network(
-          //       'http://thewowstyle.com/wp-content/uploads/2015/01/nature-images-6.jpg',
-          //       fit: BoxFit.cover,
-          //     ),
-          //   ),
-          //   IconButton(
-          //       onPressed: () {},
-          //       icon: const Icon(
-          //         Icons.play_circle,
-          //         size: 32.0,
-          //       ))
-          // ]),
           const SizedBox(
             height: 12.0,
           ),
@@ -62,15 +58,18 @@ class HomePageState extends State<HomePage> {
           const SizedBox(
             height: 12.0,
           ),
-
-          Column(
-              children: addDividers(INApi.getNews()
-                  .map((e) => INNewsCard(
-                        news: e,
-                        onNavPop: widget.onMessage,
-                      ))
-                  .toList())),
-
+          if (news != null)
+            Column(
+                children: addDividers(news!
+                    .map((e) => INNewsCard(
+                          news: e,
+                          onNavPop: widget.onMessage,
+                        ))
+                    .toList()))
+          else
+            Column(
+                children: addDividers(
+                    List.generate(10, (_) => const INLoadingNewsCard()))),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 32),
             child: Center(

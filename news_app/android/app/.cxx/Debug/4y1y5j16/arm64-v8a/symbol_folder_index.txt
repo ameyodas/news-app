@@ -1,0 +1,1 @@
+/home/ameyo/dev/news-app/news_app/build/app/intermediates/cxx/Debug/4y1y5j16/obj/arm64-v8a

@@ -1,6 +1,8 @@
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:news_app/pages/home_page.dart';
 import 'package:news_app/pages/search_page.dart';
+import 'package:news_app/theme.dart';
 
 void main() {
   runApp(const NewsApp());
@@ -16,8 +18,9 @@ class NewsApp extends StatefulWidget {
 class MyIconData {
   IconData normal;
   IconData active;
+  String? label;
 
-  MyIconData({required this.normal, required this.active});
+  MyIconData({required this.normal, required this.active, this.label});
 }
 
 class NewsAppState extends State<NewsApp> {
@@ -35,11 +38,26 @@ class NewsAppState extends State<NewsApp> {
   }
 
   final List<MyIconData> _pageIconData = [
-    MyIconData(normal: Icons.home, active: Icons.home_filled),
-    MyIconData(normal: Icons.play_arrow_rounded, active: Icons.play_circle),
-    MyIconData(normal: Icons.search, active: Icons.search_sharp),
-    MyIconData(normal: Icons.bookmark_outline, active: Icons.bookmark),
-    MyIconData(normal: Icons.email_outlined, active: Icons.email)
+    MyIconData(
+        normal: FluentIcons.home_empty_20_regular,
+        active: FluentIcons.home_empty_20_filled,
+        label: 'Home'),
+    MyIconData(
+        normal: FluentIcons.play_circle_20_regular,
+        active: FluentIcons.play_circle_20_filled,
+        label: 'Stream'),
+    MyIconData(
+        normal: Icons.search_rounded,
+        active: Icons.search_rounded,
+        label: 'Search'),
+    MyIconData(
+        normal: FluentIcons.bookmark_16_regular,
+        active: FluentIcons.bookmark_16_filled,
+        label: 'Saved'),
+    MyIconData(
+        normal: FluentIcons.mail_inbox_16_regular,
+        active: FluentIcons.mail_inbox_16_filled,
+        label: 'Newsletter')
   ];
 
   void onMessage(String message) {
@@ -64,7 +82,7 @@ class NewsAppState extends State<NewsApp> {
           .map((iconData) => BottomNavigationBarItem(
                 icon: Icon(iconData.normal),
                 activeIcon: Icon(iconData.active),
-                label: '',
+                label: iconData.label ?? '',
               ))
           .toList(),
     );
@@ -89,8 +107,7 @@ class NewsAppState extends State<NewsApp> {
         // centerTitle: true,
         actions: [
           IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.supervised_user_circle_outlined))
+              onPressed: () {}, icon: const Icon(FluentIcons.person_12_regular))
         ]);
   }
 
@@ -99,46 +116,9 @@ class NewsAppState extends State<NewsApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
         title: 'NewsApp',
-        theme: ThemeData.light().copyWith(
-            primaryColor: Colors.blue,
-            scaffoldBackgroundColor: Colors.white,
-            bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-                selectedItemColor: Colors.black,
-                unselectedItemColor: Colors.black45),
-            elevatedButtonTheme: ElevatedButtonThemeData(
-                style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: const Color.fromARGB(255, 64, 64, 64),
-                    elevation: 0,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    visualDensity: VisualDensity.compact)),
-            iconTheme: const IconThemeData(size: 18.0, color: Colors.black),
-            appBarTheme: const AppBarTheme(color: Colors.white)),
-        darkTheme: ThemeData.dark().copyWith(
-            primaryColor: Colors.blueGrey,
-            scaffoldBackgroundColor: Colors.black,
-            bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-                selectedItemColor: Colors.white,
-                unselectedItemColor: Colors.white54),
-            elevatedButtonTheme: ElevatedButtonThemeData(
-              style: ElevatedButton.styleFrom(
-                  foregroundColor: const Color.fromARGB(255, 32, 32, 32),
-                  backgroundColor: Colors.white,
-                  elevation: 0,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  visualDensity: VisualDensity.compact),
-            ),
-            iconTheme: const IconThemeData(size: 18.0, color: Colors.white),
-            appBarTheme: const AppBarTheme(color: Colors.black)),
-        themeMode: ThemeMode.dark,
+        theme: INTheme.light(),
+        darkTheme: INTheme.dark(),
+        themeMode: INTheme.mode,
         home: Scaffold(
             appBar: buildAppBar(context),
             bottomNavigationBar: buildNavBar(context),

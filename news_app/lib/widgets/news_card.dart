@@ -1,7 +1,72 @@
+import 'package:card_loading/card_loading.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:news_app/news.dart';
 import 'package:news_app/pages/read_page.dart';
 import 'package:news_app/widgets/chips.dart';
+
+class INLoadingNewsCard extends StatelessWidget {
+  const INLoadingNewsCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = CardLoadingTheme(
+        colorOne: Theme.of(context).brightness == Brightness.light
+            ? Colors.white
+            : Colors.black,
+        colorTwo: Theme.of(context).brightness == Brightness.light
+            ? Colors.black12
+            : Colors.white10);
+
+    return Column(children: <Widget>[
+      const CardLoading(
+        height: 90,
+      ),
+      const SizedBox(
+        height: 16.0,
+      ),
+      Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+          child: Column(children: <Widget>[
+            CardLoading(
+              height: 24.0,
+              borderRadius: const BorderRadius.all(Radius.circular(10)),
+              curve: Curves.decelerate,
+              cardLoadingTheme: theme,
+            ),
+            const SizedBox(
+              height: 16.0,
+            ),
+            CardLoading(
+              height: 16.0,
+              borderRadius: const BorderRadius.all(Radius.circular(6)),
+              curve: Curves.easeInOutCirc,
+              cardLoadingTheme: theme,
+            ),
+            const SizedBox(
+              height: 8.0,
+            ),
+            CardLoading(
+              height: 16.0,
+              borderRadius: const BorderRadius.all(Radius.circular(6)),
+              curve: Curves.easeInOutExpo,
+              cardLoadingTheme: theme,
+            ),
+            // SizedBox(
+            //   height: 8.0,
+            // ),
+            // CardLoading(
+            //   height: 16.0,
+            //   borderRadius: BorderRadius.all(Radius.circular(6)),
+            //   curve: Curves.easeInOutExpo,
+            // ),
+            const SizedBox(
+              height: 16.0,
+            )
+          ]))
+    ]);
+  }
+}
 
 class INNewsCard extends StatelessWidget {
   final INNews news;
@@ -108,7 +173,7 @@ class INNewsCard extends StatelessWidget {
                               visualDensity: VisualDensity.compact,
                               splashRadius: 18.0,
                               iconSize: 18.0,
-                              icon: const Icon(Icons.bookmark_border),
+                              icon: const Icon(FluentIcons.bookmark_16_regular),
                               onPressed: () {
                                 // Save action
                               },
@@ -120,7 +185,7 @@ class INNewsCard extends StatelessWidget {
                               visualDensity: VisualDensity.compact,
                               splashRadius: 18.0,
                               iconSize: 18.0,
-                              icon: const Icon(Icons.share_outlined),
+                              icon: const Icon(FluentIcons.share_16_regular),
                               onPressed: () {
                                 // Share action
                               },
@@ -134,7 +199,7 @@ class INNewsCard extends StatelessWidget {
                           visualDensity: VisualDensity.compact,
                           splashRadius: 18.0,
                           iconSize: 18.0,
-                          icon: const Icon(Icons.thumb_up_alt_outlined,
+                          icon: const Icon(FluentIcons.heart_12_regular,
                               color: Colors.red),
                           onPressed: () {
                             // Like action
