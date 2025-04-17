@@ -1,0 +1,1 @@
+/home/ameyo/dev/news-app/news_app/build/app/intermediates/cxx/RelWithDebInfo/4wz64d48/obj/arm64-v8a

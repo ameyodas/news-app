@@ -1,23 +1,24 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:news_app/api.dart';
+import 'package:gpt_markdown/gpt_markdown.dart';
+import 'package:news_app/api/llm_tts_api.dart';
 import 'package:news_app/news.dart';
 import 'package:news_app/theme.dart';
 
-class ReadPage extends StatefulWidget {
+class ReadingPage extends StatefulWidget {
   final INNews news;
   final double imgHeight;
 
-  const ReadPage({super.key, required this.news, this.imgHeight = 128.0});
+  const ReadingPage({super.key, required this.news, this.imgHeight = 128.0});
 
   @override
-  State<ReadPage> createState() => ReadPageState();
+  State<ReadingPage> createState() => ReadingPageState();
 }
 
 class Action {
   final Icon activeIcon;
   final Icon inactiveIcon;
-  final void Function(bool, BuildContext?) onToggle;
+  final Future<void> Function(bool, BuildContext?) onToggle;
   final String? label;
 
   Action(
@@ -27,8 +28,10 @@ class Action {
       this.label});
 }
 
-class ReadPageState extends State<ReadPage> {
+class ReadingPageState extends State<ReadingPage> {
   String? _summary;
+  String? _translation;
+  late String _contentText;
 
   late List<Action> _actions;
   late List<bool> _actionsState;
@@ -36,24 +39,25 @@ class ReadPageState extends State<ReadPage> {
   @override
   void initState() {
     super.initState();
+    _contentText = widget.news.content;
     _actions = <Action>[
       Action(
         inactiveIcon: const Icon(FluentIcons.filter_12_regular),
         activeIcon: const Icon(FluentIcons.filter_12_filled),
         label: 'Summarize',
-        onToggle: summarize,
+        onToggle: _summarize,
       ),
       Action(
         inactiveIcon: const Icon(FluentIcons.translate_16_regular),
         activeIcon: const Icon(FluentIcons.translate_16_filled),
         label: 'Translate',
-        onToggle: (isOn, context) {},
+        onToggle: _translate,
       ),
       Action(
         inactiveIcon: const Icon(Icons.search_rounded),
         activeIcon: const Icon(Icons.search_rounded),
         label: 'Search',
-        onToggle: (isOn, context) {
+        onToggle: (isOn, context) async {
           Navigator.of(context!).pop('search');
         },
       ),
@@ -61,68 +65,106 @@ class ReadPageState extends State<ReadPage> {
         inactiveIcon: const Icon(FluentIcons.play_circle_20_regular),
         activeIcon: const Icon(FluentIcons.play_circle_20_filled),
         label: 'Stream',
-        onToggle: (isOn, context) {},
+        onToggle: (isOn, context) async {},
       ),
       Action(
         inactiveIcon: const Icon(FluentIcons.bookmark_16_regular),
         activeIcon: const Icon(FluentIcons.bookmark_16_filled),
         label: 'Save',
-        onToggle: (isOn, context) {},
+        onToggle: (isOn, context) async {},
       ),
     ];
 
     _actionsState = List<bool>.generate(_actions.length, (_) => false);
   }
 
-  void summarize(bool isOn, BuildContext? context) async {
+  Future<void> _summarize(bool isOn, BuildContext? context) async {
     if (isOn) {
-      _summary ??= await INLLMApi.summarize(
+      _summary ??= await LLMApi.instance!.summarize(
           headline: widget.news.headline,
           content: widget.news.content,
-          srcLink: widget.news.source);
+          srcLink: widget.news.sourceUrl);
+
+      setState(() {
+        _contentText = _summary!;
+      });
+    } else {
+      setState(() {
+        _contentText = widget.news.content;
+      });
     }
-    setState(() {});
+  }
+
+  Future<void> _translate(bool isOn, BuildContext? context) async {
+    if (isOn) {
+      _translation ??= await LLMApi.instance!
+          .translate(content: widget.news.content, targetLang: 'bengali');
+
+      setState(() {
+        _contentText = _translation!;
+      });
+    } else {
+      setState(() {
+        _contentText = widget.news.content;
+      });
+    }
   }
 
   Widget buildActionsBar(BuildContext context) {
-    final barBgCol = Theme.of(context).brightness == Brightness.light
+    final isLight = Theme.of(context).brightness == Brightness.light;
+    final barBgCol = isLight
         ? const Color.fromARGB(255, 240, 240, 240)
         : const Color.fromARGB(255, 16, 16, 16);
 
-    return BottomAppBar(
-      height: 58.0,
-      color: barBgCol,
-      padding: const EdgeInsets.all(0.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: List.generate(_actions.length, (index) {
-          final action = _actions[index];
-          Color btnBgCol = barBgCol;
-          if (_actionsState[index]) {
-            btnBgCol = Theme.of(context).brightness == Brightness.light
-                ? const Color.fromARGB(255, 210, 210, 210)
-                : const Color.fromARGB(255, 48, 48, 48);
-          }
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+      child: Material(
+        clipBehavior: Clip.antiAlias,
+        elevation: 24.0,
+        borderRadius: BorderRadius.circular(16.0),
+        shadowColor: isLight ? Colors.white : Colors.black,
+        color: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            color: barBgCol,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          height: 58.0,
+          padding: const EdgeInsets.symmetric(horizontal: 6.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: List.generate(_actions.length, (index) {
+              final action = _actions[index];
+              Color btnBgCol = barBgCol;
+              if (_actionsState[index]) {
+                btnBgCol = isLight
+                    ? const Color.fromARGB(255, 210, 210, 210)
+                    : const Color.fromARGB(255, 48, 48, 48);
+              }
 
-          return Container(
-            width: 60,
-            height: 36,
-            decoration: BoxDecoration(
-              color: btnBgCol,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              icon: _actionsState[index]
-                  ? action.activeIcon
-                  : action.inactiveIcon,
-              onPressed: () {
-                _actionsState[index] = !_actionsState[index];
-                action.onToggle(_actionsState[index], context);
-              },
-            ),
-          );
-        }),
+              return Container(
+                width: 60,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: btnBgCol,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: IconButton(
+                  padding: EdgeInsets.zero,
+                  icon: _actionsState[index]
+                      ? action.activeIcon
+                      : action.inactiveIcon,
+                  onPressed: () {
+                    setState(() async {
+                      _actionsState[index] = !_actionsState[index];
+                      await action.onToggle(_actionsState[index], context);
+                    });
+                  },
+                ),
+              );
+            }),
+          ),
+        ),
       ),
     );
   }
@@ -152,9 +194,10 @@ class ReadPageState extends State<ReadPage> {
                           : Colors.white54,
                 ),
                 child: Text(
-                  widget.news.sourceTitle,
+                  widget.news.sourceName,
                   style: const TextStyle(fontFamily: 'Raleway'),
-                  overflow: TextOverflow.fade,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
               ),
             ),
@@ -177,6 +220,7 @@ class ReadPageState extends State<ReadPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       appBar: buildAppBar(context),
       bottomNavigationBar: buildActionsBar(context),
       body: SingleChildScrollView(
@@ -211,54 +255,16 @@ class ReadPageState extends State<ReadPage> {
                       fontFamily: 'Montserrat',
                     ),
                   ),
-                  // if (widget.news.tags != null)
-                  //   Padding(
-                  //     padding: const EdgeInsets.only(top: 8.0),
-                  //     child: Row(
-                  //       children: widget.news.tags!
-                  //           .map((e) => Padding(
-                  //                 padding: const EdgeInsets.only(right: 8.0),
-                  //                 child: INChip(
-                  //                   text: e,
-                  //                   backgroundColor:
-                  //                       Theme.of(context).brightness ==
-                  //                               Brightness.dark
-                  //                           ? Colors.black
-                  //                           : Colors.white,
-                  //                   side: BorderSide(
-                  //                     color: Theme.of(context).brightness ==
-                  //                             Brightness.dark
-                  //                         ? Colors.white24
-                  //                         : Colors.black26,
-                  //                   ),
-                  //                 ),
-                  //               ))
-                  //           .toList(),
-                  //     ),
-                  //   ),
-
-                  // Row(
-                  //   children: [
-                  //     ElevatedButton.icon(
-                  //       onPressed: () {},
-                  //       icon: const Icon(
-                  //         FluentIcons.filter_12_regular,
-                  //       ),
-                  //       label: const Text('Summarize'),
-                  //     )
-                  //   ],
-                  // ),
-
                   const SizedBox(
                     height: 30.0,
                   ),
-                  Text(
-                    _actionsState[0] ? _summary! : widget.news.content,
+                  GptMarkdown(
+                    _contentText,
                     textAlign: TextAlign.justify,
                     style: const TextStyle(fontSize: 16.0, fontFamily: 'Inter'),
                   ),
                   const SizedBox(
-                    height: 32.0,
+                    height: 90.0,
                   )
                 ],
               ),

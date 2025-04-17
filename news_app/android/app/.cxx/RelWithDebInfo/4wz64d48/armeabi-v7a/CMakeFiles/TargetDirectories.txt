@@ -1,0 +1,2 @@
+/home/ameyo/dev/news-app/news_app/android/app/.cxx/RelWithDebInfo/4wz64d48/armeabi-v7a/CMakeFiles/edit_cache.dir
+/home/ameyo/dev/news-app/news_app/android/app/.cxx/RelWithDebInfo/4wz64d48/armeabi-v7a/CMakeFiles/rebuild_cache.dir

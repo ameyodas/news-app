@@ -1,8 +1,9 @@
 import 'package:card_loading/card_loading.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:news_app/api/db_api.dart';
 import 'package:news_app/news.dart';
-import 'package:news_app/pages/read_page.dart';
+import 'package:news_app/pages/reading_page.dart';
 import 'package:news_app/widgets/chips.dart';
 
 class INLoadingNewsCard extends StatelessWidget {
@@ -19,8 +20,9 @@ class INLoadingNewsCard extends StatelessWidget {
             : Colors.white10);
 
     return Column(children: <Widget>[
-      const CardLoading(
+      CardLoading(
         height: 90,
+        cardLoadingTheme: theme,
       ),
       const SizedBox(
         height: 16.0,
@@ -68,24 +70,53 @@ class INLoadingNewsCard extends StatelessWidget {
   }
 }
 
-class INNewsCard extends StatelessWidget {
+class INNewsCard extends StatefulWidget {
   final INNews news;
-  final double imgHeight;
-  final void Function(String)? onNavPop;
+  final void Function(dynamic)? callback;
+  final bool isSavedInitially;
 
   const INNewsCard(
-      {super.key, required this.news, this.imgHeight = 90.0, this.onNavPop});
+      {super.key,
+      required this.news,
+      this.callback,
+      this.isSavedInitially = false});
+
+  @override
+  State<INNewsCard> createState() => INNewsCardState();
+}
+
+class INNewsCardState extends State<INNewsCard> {
+  late bool isSaved;
+
+  @override
+  void initState() {
+    super.initState();
+    isSaved = widget.isSavedInitially;
+  }
+
+  void saveAction() async {
+    if (!isSaved) {
+      await DBApi.instance!.storeArticle(widget.news);
+    } else {
+      await DBApi.instance!.deleteArticle(widget.news.newsId);
+    }
+    setState(() {
+      isSaved = !isSaved;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
-        Navigator.push(context,
-                MaterialPageRoute(builder: (context) => ReadPage(news: news)))
+        Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => ReadingPage(news: widget.news)))
             .then((result) {
           if (result != null) {
-            onNavPop?.call(result);
+            widget.callback?.call(result);
           }
         });
       },
@@ -93,12 +124,12 @@ class INNewsCard extends StatelessWidget {
         color: Colors.transparent,
         child: Column(
           children: [
-            if (news.imageUrl != null)
+            if (widget.news.imageUrl != null)
               SizedBox(
-                height: imgHeight,
+                height: 90.0,
                 width: double.infinity,
                 child: Image.network(
-                  news.imageUrl!,
+                  widget.news.imageUrl!,
                   fit: BoxFit.cover,
                 ),
               )
@@ -115,7 +146,7 @@ class INNewsCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        news.headline,
+                        widget.news.headline,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -124,11 +155,11 @@ class INNewsCard extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      if (news.tags != null)
+                      if (widget.news.tags != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 4.0),
                           child: Row(
-                            children: news.tags!
+                            children: widget.news.tags!
                                 .map((e) => Padding(
                                       padding:
                                           const EdgeInsets.only(right: 8.0),
@@ -152,7 +183,7 @@ class INNewsCard extends StatelessWidget {
                         ),
                       const SizedBox(height: 8.0),
                       Text(
-                        news.content,
+                        widget.news.content,
                         style:
                             const TextStyle(fontSize: 14, fontFamily: 'Inter'),
                         maxLines: 2,
@@ -170,14 +201,13 @@ class INNewsCard extends StatelessWidget {
                           IgnorePointer(
                             ignoring: false,
                             child: IconButton(
-                              visualDensity: VisualDensity.compact,
-                              splashRadius: 18.0,
-                              iconSize: 18.0,
-                              icon: const Icon(FluentIcons.bookmark_16_regular),
-                              onPressed: () {
-                                // Save action
-                              },
-                            ),
+                                visualDensity: VisualDensity.compact,
+                                splashRadius: 18.0,
+                                iconSize: 18.0,
+                                icon: Icon(isSaved
+                                    ? FluentIcons.bookmark_16_filled
+                                    : FluentIcons.bookmark_16_regular),
+                                onPressed: saveAction),
                           ),
                           IgnorePointer(
                             ignoring: false,
@@ -211,6 +241,151 @@ class INNewsCard extends StatelessWidget {
                 ],
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class INSavedNewsCard extends StatefulWidget {
+  final INNews news;
+  final void Function(dynamic)? callback;
+  final bool isSavedInitially;
+
+  const INSavedNewsCard(
+      {super.key,
+      required this.news,
+      this.callback,
+      this.isSavedInitially = true});
+
+  @override
+  State<INSavedNewsCard> createState() => INSavedNewsCardState();
+}
+
+class INSavedNewsCardState extends State<INSavedNewsCard> {
+  late bool isSaved;
+
+  @override
+  void initState() {
+    super.initState();
+    isSaved = widget.isSavedInitially;
+  }
+
+  void saveAction() async {
+    if (!isSaved) {
+      await DBApi.instance!.storeArticle(widget.news);
+    } else {
+      await DBApi.instance!.deleteArticle(widget.news.newsId);
+    }
+    setState(() {
+      isSaved = !isSaved;
+    });
+    if (isSaved) {
+      widget.callback?.call('save');
+    } else {
+      widget.callback?.call('unsave');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => ReadingPage(news: widget.news)))
+            .then((result) {
+          if (result != null) {
+            widget.callback?.call(result);
+          }
+        });
+      },
+      child: Material(
+        color: Colors.transparent,
+        child: Row(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 12.0, vertical: 12.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.news.headline,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Montserrat',
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8.0),
+                        Text(
+                          widget.news.content,
+                          style: const TextStyle(
+                              fontSize: 14, fontFamily: 'Inter'),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8.0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        IgnorePointer(
+                          ignoring: false,
+                          child: IconButton(
+                              visualDensity: VisualDensity.compact,
+                              splashRadius: 18.0,
+                              iconSize: 18.0,
+                              icon: Icon(isSaved
+                                  ? FluentIcons.bookmark_16_filled
+                                  : FluentIcons.bookmark_16_regular),
+                              onPressed: saveAction),
+                        ),
+                        IgnorePointer(
+                          ignoring: false,
+                          child: IconButton(
+                            visualDensity: VisualDensity.compact,
+                            splashRadius: 18.0,
+                            iconSize: 18.0,
+                            icon: const Icon(FluentIcons.share_16_regular),
+                            onPressed: () {
+                              // Share action
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (widget.news.imageUrl != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: Container(
+                  width: 116.0,
+                  height: 136.0,
+                  clipBehavior: Clip.antiAlias,
+                  decoration:
+                      BoxDecoration(borderRadius: BorderRadius.circular(10.0)),
+                  child: Image.network(
+                    widget.news.imageUrl!,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
           ],
         ),
       ),
