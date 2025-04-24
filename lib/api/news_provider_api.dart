@@ -141,7 +141,7 @@ class WorldNewsApi extends NewsProviderApi {
       for (final newsCluster in data['top_news']) {
         for (final news in newsCluster['news']) {
           processedNews.add(INNews(
-              newsId: news['id']!,
+              idSeed: news['id']!,
               headline: news['title']!,
               content: news['text']!,
               imageUrl: news['image'],
@@ -180,8 +180,9 @@ class WorldNewsApi extends NewsProviderApi {
 
       final processedNews = <INNews>[];
       for (final news in data['news']) {
+        // asdfgb(news['image']);
         processedNews.add(INNews(
-            newsId: news['id']!,
+            idSeed: news['id']!,
             headline: news['title']!,
             content: news['text']!,
             imageUrl: news['image'],
@@ -238,11 +239,15 @@ class GNewsApi extends NewsProviderApi {
 
       final processedNews = <INNews>[];
       for (final news in data['articles']) {
+        // asdfgb(news['image']);
         processedNews.add(INNews(
-          newsId: news['url'],
+          idSeed: news['url'],
           headline: news['title']!,
           content: news['description']!,
-          imageUrl: news['image'],
+          imageUrl:
+              news['image'] != null && (news['image'] as String).isNotEmpty
+                  ? news['image']
+                  : null,
           tags: [],
           sourceUrl: news['url']!,
           sourceName:
@@ -250,7 +255,7 @@ class GNewsApi extends NewsProviderApi {
         ));
       }
       return processedNews;
-    } catch (_) {
+    } on DioException catch (_) {
       return Future.value(<INNews>[]);
     }
   }
@@ -277,11 +282,15 @@ class GNewsApi extends NewsProviderApi {
 
       final processedNews = <INNews>[];
       for (final news in data['articles']) {
+        // asdfgb(news['image']);
         processedNews.add(INNews(
-          newsId: news['url'],
+          idSeed: news['url'],
           headline: news['title']!,
           content: news['description']!,
-          imageUrl: news['image'],
+          imageUrl:
+              news['image'] != null && (news['image'] as String).isNotEmpty
+                  ? news['image']
+                  : null,
           tags: [],
           sourceUrl: news['url']!,
           sourceName:
@@ -319,10 +328,13 @@ class GNewsApi extends NewsProviderApi {
       final processedNews = <INNews>[];
       for (final news in data['articles']) {
         processedNews.add(INNews(
-          newsId: news['url'],
+          idSeed: news['url'],
           headline: news['title']!,
           content: news['description']!,
-          imageUrl: news['image'],
+          imageUrl:
+              news['image'] != null && (news['image'] as String).isNotEmpty
+                  ? news['image']
+                  : null,
           tags: [],
           sourceUrl: news['url']!,
           sourceName:
@@ -333,5 +345,65 @@ class GNewsApi extends NewsProviderApi {
     } catch (_) {
       return Future.value(<INNews>[]);
     }
+  }
+}
+
+class UnifiedNewsApi extends NewsProviderApi {
+  final _newsApis = [WorldNewsApi(), GNewsApi()];
+
+  @override
+  Future<List<INNews>> search(
+      {int numTries = 1,
+      String? keywords,
+      DateTime? startDate,
+      DateTime? endDate,
+      List<String>? tags,
+      String? region}) async {
+    for (final newsApi in _newsApis) {
+      try {
+        final result = await newsApi.search(
+            numTries: numTries,
+            keywords: keywords,
+            startDate: startDate,
+            endDate: endDate,
+            tags: tags,
+            region: region);
+        if (result.isNotEmpty) return Future.value(result);
+      } catch (_) {}
+    }
+    return Future.value([]);
+  }
+
+  @override
+  Future<List<INNews>> fetchHighlights({int numTries = 1}) async {
+    for (final newsApi in _newsApis) {
+      try {
+        final result = await newsApi.fetchHighlights(numTries: numTries);
+        if (result.isNotEmpty) return Future.value(result);
+      } catch (_) {}
+    }
+    return Future.value([]);
+  }
+
+  @override
+  Future<List<INNews>> fetchForYou({int numTries = 1}) async {
+    for (final newsApi in _newsApis) {
+      try {
+        final result = await newsApi.fetchForYou(numTries: numTries);
+        if (result.isNotEmpty) return Future.value(result);
+      } catch (_) {}
+    }
+    return Future.value([]);
+  }
+
+  @override
+  Future<List<INNews>> fetchMissed({int numTries = 1}) async {
+    for (final newsApi in _newsApis) {
+      try {
+        final result = await newsApi.fetchMissed(numTries: numTries);
+        if (result.isNotEmpty) return Future.value(result);
+      } catch (_) {}
+    }
+    return Future.value([]);
   }
 }

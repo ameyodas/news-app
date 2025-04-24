@@ -50,20 +50,21 @@ class Section extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(
-          height: 12.0,
-        ),
         Padding(
-            padding: const EdgeInsets.only(left: 12.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 14.0, vertical: 16.0),
             child: Text(title,
                 style: const TextStyle(
-                  fontFamily: 'Raleway',
-                  fontWeight: FontWeight.w600,
+                  fontFamily: 'Montserrat',
+                  fontWeight: FontWeight.bold,
                   fontSize: 18.0,
                 ))),
-        const SizedBox(
-          height: 12.0,
+        const Divider(
+          height: 1.0,
+          thickness: 0.35,
         ),
         ListView.separated(
           shrinkWrap: true,
@@ -77,11 +78,15 @@ class Section extends StatelessWidget {
               return cardBuilder(context, thisNews);
             }
           },
-          separatorBuilder: (context, index) => const Divider(height: 1.0),
+          separatorBuilder: (context, index) => const Divider(
+            height: 1.0,
+            thickness: 0.35,
+          ),
         ),
-        const SizedBox(
-          height: 32.0,
-        )
+        const Divider(
+          height: 1.0,
+          thickness: 0.35,
+        ),
       ],
     );
   }

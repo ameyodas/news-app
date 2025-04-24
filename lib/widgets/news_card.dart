@@ -4,6 +4,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:news_app/api/db_api.dart';
 import 'package:news_app/news.dart';
+import 'package:news_app/page_route_builder.dart';
 import 'package:news_app/pages/reading_page.dart';
 import 'package:news_app/widgets/chips.dart';
 
@@ -87,23 +88,23 @@ class INNewsCard extends StatefulWidget {
 }
 
 class INNewsCardState extends State<INNewsCard> {
-  late bool isSaved;
+  late bool _isSaved;
   var _imageUnloadable = false;
 
   @override
   void initState() {
     super.initState();
-    isSaved = widget.isSavedInitially;
+    _isSaved = widget.isSavedInitially;
   }
 
-  void saveAction() async {
-    if (!isSaved) {
+  void _deleteAction() async {
+    if (!_isSaved) {
       await DBApi.instance!.storeArticle(widget.news);
     } else {
       await DBApi.instance!.deleteArticle(widget.news.newsId);
     }
     setState(() {
-      isSaved = !isSaved;
+      _isSaved = !_isSaved;
     });
   }
 
@@ -112,10 +113,13 @@ class INNewsCardState extends State<INNewsCard> {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
-        Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => ReadingPage(news: widget.news)))
+        Navigator.of(context)
+            .push(INPageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    ReadingPage(
+                      news: widget.news,
+                      isSavedInitially: false,
+                    )))
             .then((result) {
           if (result != null) {
             widget.callback?.call(result);
@@ -139,7 +143,14 @@ class INNewsCardState extends State<INNewsCard> {
                           ? Colors.black12
                           : Colors.white10),
                 ),
-                errorListener: (_) => setState(() => _imageUnloadable = true),
+                errorWidget: (context, url, error) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted && !_imageUnloadable) {
+                      setState(() => _imageUnloadable = true);
+                    }
+                  });
+                  return Container();
+                },
                 fit: BoxFit.cover,
                 height: 90.0,
                 width: double.infinity,
@@ -159,9 +170,9 @@ class INNewsCardState extends State<INNewsCard> {
                       Text(
                         widget.news.headline,
                         style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Montserrat',
+                          fontSize: 17.0,
+                          fontWeight: FontWeight.w800,
+                          fontFamily: 'Raleway',
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -215,10 +226,10 @@ class INNewsCardState extends State<INNewsCard> {
                                 visualDensity: VisualDensity.compact,
                                 splashRadius: 18.0,
                                 iconSize: 18.0,
-                                icon: Icon(isSaved
+                                icon: Icon(_isSaved
                                     ? FluentIcons.bookmark_16_filled
                                     : FluentIcons.bookmark_16_regular),
-                                onPressed: saveAction),
+                                onPressed: _deleteAction),
                           ),
                           IgnorePointer(
                             ignoring: false,
@@ -262,41 +273,24 @@ class INNewsCardState extends State<INNewsCard> {
 class INSavedNewsCard extends StatefulWidget {
   final INNews news;
   final void Function(dynamic)? callback;
-  final bool isSavedInitially;
 
-  const INSavedNewsCard(
-      {super.key,
-      required this.news,
-      this.callback,
-      this.isSavedInitially = true});
+  const INSavedNewsCard({super.key, required this.news, this.callback});
 
   @override
   State<INSavedNewsCard> createState() => INSavedNewsCardState();
 }
 
 class INSavedNewsCardState extends State<INSavedNewsCard> {
-  late bool isSaved;
+  var _imageUnloadable = false;
 
   @override
   void initState() {
     super.initState();
-    isSaved = widget.isSavedInitially;
   }
 
-  void saveAction() async {
-    if (!isSaved) {
-      await DBApi.instance!.storeArticle(widget.news);
-    } else {
-      await DBApi.instance!.deleteArticle(widget.news.newsId);
-    }
-    setState(() {
-      isSaved = !isSaved;
-    });
-    if (isSaved) {
-      widget.callback?.call('save');
-    } else {
-      widget.callback?.call('unsave');
-    }
+  void _deleteAction() async {
+    await DBApi.instance!.deleteArticle(widget.news.newsId);
+    widget.callback?.call('delete ${widget.news.newsId}');
   }
 
   @override
@@ -304,10 +298,13 @@ class INSavedNewsCardState extends State<INSavedNewsCard> {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
-        Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => ReadingPage(news: widget.news)))
+        Navigator.of(context)
+            .push(INPageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    ReadingPage(
+                      news: widget.news,
+                      isSavedInitially: true,
+                    )))
             .then((result) {
           if (result != null) {
             widget.callback?.call(result);
@@ -356,17 +353,6 @@ class INSavedNewsCardState extends State<INSavedNewsCard> {
                         IgnorePointer(
                           ignoring: false,
                           child: IconButton(
-                              visualDensity: VisualDensity.compact,
-                              splashRadius: 18.0,
-                              iconSize: 18.0,
-                              icon: Icon(isSaved
-                                  ? FluentIcons.bookmark_16_filled
-                                  : FluentIcons.bookmark_16_regular),
-                              onPressed: saveAction),
-                        ),
-                        IgnorePointer(
-                          ignoring: false,
-                          child: IconButton(
                             visualDensity: VisualDensity.compact,
                             splashRadius: 18.0,
                             iconSize: 18.0,
@@ -376,24 +362,48 @@ class INSavedNewsCardState extends State<INSavedNewsCard> {
                             },
                           ),
                         ),
+                        IgnorePointer(
+                          ignoring: false,
+                          child: IconButton(
+                              visualDensity: VisualDensity.compact,
+                              splashRadius: 18.0,
+                              iconSize: 18.0,
+                              icon: const Icon(FluentIcons.delete_12_regular,
+                                  color: Colors.red),
+                              onPressed: _deleteAction),
+                        ),
                       ],
                     ),
                   ],
                 ),
               ),
             ),
-            if (widget.news.imageUrl != null)
+            if (widget.news.imageUrl != null && !_imageUnloadable)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12.0),
                 child: Container(
-                  width: 116.0,
-                  height: 136.0,
                   clipBehavior: Clip.antiAlias,
                   decoration:
                       BoxDecoration(borderRadius: BorderRadius.circular(10.0)),
-                  child: Image.network(
-                    widget.news.imageUrl!,
+                  child: CachedNetworkImage(
+                    imageUrl: widget.news.imageUrl!,
+                    placeholder: (context, url) => CardLoading(
+                      height: 90.0,
+                      cardLoadingTheme: CardLoadingTheme(
+                          colorOne:
+                              Theme.of(context).brightness == Brightness.light
+                                  ? Colors.white
+                                  : Colors.black,
+                          colorTwo:
+                              Theme.of(context).brightness == Brightness.light
+                                  ? Colors.black12
+                                  : Colors.white10),
+                    ),
+                    errorListener: (_) =>
+                        setState(() => _imageUnloadable = true),
                     fit: BoxFit.cover,
+                    height: 136.0,
+                    width: 116.0,
                   ),
                 ),
               ),

@@ -7,9 +7,8 @@ import 'package:news_app/widgets/chips.dart';
 class InterestsPage extends StatefulWidget {
   final InterestsData? interests;
   final void Function(BuildContext)? onClose;
-  final void Function(dynamic)? callback;
 
-  const InterestsPage({super.key, this.interests, this.onClose, this.callback});
+  const InterestsPage({super.key, this.interests, this.onClose});
 
   @override
   State<InterestsPage> createState() => InterestsPageState();

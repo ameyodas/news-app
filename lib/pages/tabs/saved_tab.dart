@@ -25,8 +25,16 @@ class SavedTabState extends State<SavedTab> {
   }
 
   void _callback(dynamic msg) {
-    if (msg == 'unsave' || msg == 'save') {
-      _beginFetchNews();
+    if (msg is! String) return;
+    msg = msg.toString();
+    debugPrint('callback: $msg');
+
+    if (msg.startsWith('delete ')) {
+      debugPrint(msg);
+      final newsId = msg.substring('delete '.length);
+      setState(() {
+        _news.removeWhere((news) => news?.newsId == newsId);
+      });
     }
   }
 
@@ -65,7 +73,10 @@ class SavedTabState extends State<SavedTab> {
         name: 'saved_articles',
         title: 'Saved Articles',
         news: _news,
-        cardBuilder: (context, news) => INSavedNewsCard(news: news),
+        cardBuilder: (context, news) => INSavedNewsCard(
+          news: news,
+          callback: _callback,
+        ),
         callback: _callback,
       ),
     );

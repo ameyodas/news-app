@@ -18,6 +18,16 @@ class INTheme {
               ),
               visualDensity: VisualDensity.compact)),
       iconTheme: const IconThemeData(size: 20.0, color: Colors.black),
+      iconButtonTheme: IconButtonThemeData(
+          style: IconButton.styleFrom(
+              foregroundColor: Colors.black.withAlpha(200),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              //padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+              // shape: RoundedRectangleBorder(
+              //   borderRadius: BorderRadius.circular(10),
+              // ),
+              visualDensity: VisualDensity.compact)),
       appBarTheme: const AppBarTheme(color: Colors.white),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -61,6 +71,16 @@ class INTheme {
             ),
             visualDensity: VisualDensity.compact),
       ),
+      iconButtonTheme: IconButtonThemeData(
+          style: IconButton.styleFrom(
+              foregroundColor: Colors.white.withAlpha(200),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              //padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+              // shape: RoundedRectangleBorder(
+              //   borderRadius: BorderRadius.circular(10),
+              // ),
+              visualDensity: VisualDensity.compact)),
       iconTheme: const IconThemeData(size: 20.0, color: Colors.white),
       appBarTheme: const AppBarTheme(color: Colors.black),
       inputDecorationTheme: InputDecorationTheme(

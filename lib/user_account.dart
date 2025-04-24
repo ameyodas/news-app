@@ -105,7 +105,7 @@ class SupabaseAccount extends UserAccount {
 
   @override
   Future<void> _apiInit() async {
-    NewsProviderApi.initialize(WorldNewsApi());
+    NewsProviderApi.initialize(UnifiedNewsApi());
     LLMApi.initialize(LLMAWSApi());
     await DBApi.initialize(SupabaseDBApi());
   }

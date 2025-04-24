@@ -1,12 +1,12 @@
+import 'dart:convert';
 import 'dart:math';
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 
 class LLMApi {
   static LLMApi? instance;
   static void initialize(LLMApi api) => instance = api;
 
-  Future<String> summarize(
+  Future<String?> summarize(
       {required String headline,
       required String content,
       required String srcLink,
@@ -15,8 +15,9 @@ class LLMApi {
     throw UnimplementedError();
   }
 
-  Future<String> translate(
-      {required String content,
+  Future<Map<String, String>?> translate(
+      {required String headline,
+      required String content,
       required String targetLang,
       int numTries = 1,
       bool forceFetch = false}) async {
@@ -29,12 +30,22 @@ class LLMAWSApi extends LLMApi {
       baseUrl:
           'https://b7ln7iwhsdek2lkvarroebe64y0juyax.lambda-url.ap-south-1.on.aws/'));
 
-  static final Map<Map<String, String>, Map<String, String>>
-      _summarizationCache = {};
-  static final Map<Map<String, String>, String> _translationCache = {};
+  static final Map<Map<String, String>, String> _summarizationCache = {};
+  static final Map<Map<String, String>, Map<String, String>> _translationCache =
+      {};
+
+  String _jsonToMarkdown(dynamic summaryData) {
+    final buffer = StringBuffer();
+    buffer.writeln('${summaryData["summary"]}\n');
+    buffer.writeln('\n##### **Key Points:**\n');
+    for (final point in summaryData["key_points"]) {
+      buffer.writeln('- $point');
+    }
+    return buffer.toString();
+  }
 
   @override
-  Future<String> summarize(
+  Future<String?> summarize(
       {required String headline,
       required String content,
       required String srcLink,
@@ -44,32 +55,40 @@ class LLMAWSApi extends LLMApi {
 
     for (int tryNo = 0; tryNo < numTries; ++tryNo) {
       if (_summarizationCache.containsKey(data) && !forceFetch) {
-        return Future.value(_summarizationCache[data]!['summary']);
+        return Future.value(_summarizationCache[data]);
       }
       try {
-        var response = await _dio.post('summarize', data: data);
-        String summary = response.data['summary'];
-        String cleanedSummary = response.data['cleaned_summary'];
-        _summarizationCache[data] = {
-          'summary': summary,
-          'cleaned_summary': cleanedSummary
-        };
-        return summary;
+        final response = (await _dio.post('summarize', data: data)).data;
+        try {
+          final summaryData = jsonDecode(response['summary']);
+          final summaryMd = _jsonToMarkdown(summaryData);
+          _summarizationCache[data] = summaryMd;
+          return Future.value(summaryMd);
+        } on FormatException catch (_) {
+          break;
+        }
       } on DioException catch (_) {
-        await Future.delayed(Duration(seconds: pow(2, tryNo) as int));
+        if (tryNo + 1 < numTries) {
+          await Future.delayed(Duration(seconds: 1 << tryNo));
+        }
       }
     }
-    return Future<String>.value(content);
+    return Future.value(null);
   }
 
   @override
-  Future<String> translate(
-      {required String content,
+  Future<Map<String, String>?> translate(
+      {required String headline,
+      required String content,
       required String targetLang,
       int numTries = 1,
       bool forceFetch = false}) async {
-    final data = {'text': content, 'target_lang': targetLang};
-    debugPrint(data.toString());
+    final data = {
+      'headline': headline,
+      'text': content,
+      'target_lang': targetLang
+    };
+    //debugPrint(data.toString());
 
     for (int tryNo = 0; tryNo < numTries; ++tryNo) {
       if (_translationCache.containsKey(data) && !forceFetch) {
@@ -77,14 +96,17 @@ class LLMAWSApi extends LLMApi {
       }
       try {
         var response = await _dio.post('translate', data: data);
-        String translatedText = response.data['translated_text'];
-        _translationCache[data] = translatedText;
-        debugPrint(translatedText);
-        return translatedText;
+        var translation = jsonDecode(response.data['translated_text']!);
+        translation = <String, String>{
+          'headline': translation['translated_headline']!,
+          'content': translation['translated_body']!
+        };
+        _translationCache[data] = translation;
+        return translation;
       } on DioException catch (_) {
         await Future.delayed(Duration(seconds: pow(2, tryNo) as int));
       }
     }
-    return Future<String>.value(content);
+    return Future.value(null);
   }
 }

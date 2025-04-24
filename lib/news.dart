@@ -11,15 +11,47 @@ class INNews {
 
   static const Uuid _uuid = Uuid();
 
-  INNews(
-      {dynamic newsId,
+  INNews.withUuid(
+      {required this.newsId,
       required this.headline,
       required this.content,
       required this.sourceUrl,
       required this.sourceName,
       this.imageUrl,
-      this.tags}) {
-    this.newsId = _uuid.v5(Namespace.url.value, newsId.toString());
+      this.tags});
+
+  INNews(
+      {required dynamic idSeed,
+      required String headline,
+      required String content,
+      required String sourceUrl,
+      required String sourceName,
+      String? imageUrl,
+      List<String>? tags})
+      : this.withUuid(
+            newsId: _uuid.v5(Namespace.url.value, idSeed.toString()),
+            headline: headline,
+            content: content,
+            sourceUrl: sourceUrl,
+            sourceName: sourceName,
+            imageUrl: imageUrl,
+            tags: tags);
+
+  INNews cloneWith(
+      {String? headline,
+      String? content,
+      String? sourceUrl,
+      String? sourceName,
+      String? imageUrl,
+      List<String>? tags}) {
+    return INNews.withUuid(
+        newsId: newsId,
+        headline: headline ?? this.headline,
+        content: content ?? this.content,
+        sourceUrl: sourceUrl ?? this.sourceUrl,
+        sourceName: sourceName ?? this.sourceName,
+        imageUrl: imageUrl ?? this.imageUrl,
+        tags: tags ?? this.tags);
   }
 
   Map<String, String> toMap() {
@@ -35,7 +67,7 @@ class INNews {
   }
 
   static INNews fromMap(Map<String, String> map) {
-    return INNews(
+    return INNews.withUuid(
         newsId: map['news_id']!,
         headline: map['headline']!,
         content: map['content']!,

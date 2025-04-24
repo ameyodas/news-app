@@ -190,6 +190,16 @@ flutter:
       fonts:
         - asset: fonts/UnifrakturMaguntia-Regular.ttf
 
+    - family: Merriweather
+      fonts:
+        - asset: fonts/Merriweather.ttf
+
+    - family: LibreBaskerville
+      fonts:
+        - asset: fonts/LibreBaskerville/LibreBaskerville-Bold.ttf
+        - asset: fonts/LibreBaskerville/LibreBaskerville-Italic.ttf
+        - asset: fonts/LibreBaskerville/LibreBaskerville-Regular.ttf
+
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package

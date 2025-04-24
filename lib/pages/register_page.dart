@@ -1,5 +1,6 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:news_app/page_route_builder.dart';
 import 'package:news_app/pages/interests_page.dart';
 import 'package:news_app/pages/landing_page.dart';
 import 'package:news_app/user_account.dart';
@@ -79,12 +80,14 @@ class RegisterPageState extends State<RegisterPage> {
       if (!context.mounted) return;
 
       Navigator.of(context).push(
-        MaterialPageRoute(
-            builder: (context) => InterestsPage(
+        INPageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                InterestsPage(
                   onClose: (context) =>
                       Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                        builder: (context) => const LandingPage()),
+                    INPageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                            const LandingPage()),
                     (Route<dynamic> route) => false,
                   ),
                 )),

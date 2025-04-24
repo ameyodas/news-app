@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:news_app/news.dart';
 import 'package:news_app/interests.dart';
 import 'package:sqflite/sqflite.dart';
@@ -154,17 +155,21 @@ class SupabaseDBApi extends DBApi {
         .order('first_saved_at', ascending: false)
         .limit(count);
 
-    return data
-        .map((map) => INNews.fromMap(map.cast<String, String>()))
-        .toList();
+    final response =
+        data.map((map) => INNews.fromMap(map.cast<String, String>())).toList();
+
+    debugPrint(data.map((e) => e['news_id']).toString());
+    return response;
   }
 
   @override
   Future<void> deleteArticle(String newsId) async {
-    await Supabase.instance.client
+    debugPrint('deleting news with id: $newsId');
+    final response = await Supabase.instance.client
         .from('saved_articles')
         .delete()
         .eq('news_id', newsId);
+    debugPrint(response);
   }
 
   @override

@@ -200,6 +200,7 @@ class SearchTabState extends State<SearchTab> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const SizedBox(height: 32.0),
                 const Text('Get the news\nyou want',
                     style: TextStyle(
                       fontFamily: 'Raleway',
@@ -248,15 +249,16 @@ class SearchTabState extends State<SearchTab> {
               ],
             ),
           ),
-          const SizedBox(height: 70.0),
-          Section(
-            name: 'search_results',
-            title: 'Search Results',
-            news: _news ?? const <INNews>[],
-            cardBuilder: (context, news) =>
-                INNewsCard(news: news, callback: widget.callback),
-            callback: widget.callback,
-          )
+          if (_news?.isNotEmpty ?? false) const SizedBox(height: 70.0),
+          if (_news?.isNotEmpty ?? false)
+            Section(
+              name: 'search_results',
+              title: 'Search Results',
+              news: _news ?? const <INNews>[],
+              cardBuilder: (context, news) =>
+                  INNewsCard(news: news, callback: widget.callback),
+              callback: widget.callback,
+            )
         ],
       ),
     );

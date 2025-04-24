@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter/material.dart';
 import 'package:news_app/news.dart';
 import 'package:news_app/widgets/section.dart';
 
@@ -37,7 +38,7 @@ class NewsStream {
     if (_fetching == true ||
         _fetchCount >= _maxFetches ||
         _newsCount >= _maxNewsCards) {
-      return Future.value((null, const <INNews>[]));
+      return Future.value((null, <INNews>[]));
     }
 
     _fetching = true;
@@ -50,13 +51,14 @@ class NewsStream {
         sectionsData[sampleIdx].news.length) {
       final newNews = await sectionsData[sampleIdx].fetcher();
       sectionsData[sampleIdx].news.addAll(newNews);
-      _sectionIdxs[sampleIdx] += newNews.length;
+      //_sectionIdxs[sampleIdx] += newNews.length;
       _newsCount += newNews.length;
       ++_fetchCount;
     }
 
     final newIdx = min(_sectionIdxs[sampleIdx] + fetchCount,
         sectionsData[sampleIdx].news.length);
+    debugPrint('range: ${_sectionIdxs[sampleIdx]} - $newIdx');
     final result =
         sectionsData[sampleIdx].news.sublist(_sectionIdxs[sampleIdx], newIdx);
     _sectionIdxs[sampleIdx] = newIdx;

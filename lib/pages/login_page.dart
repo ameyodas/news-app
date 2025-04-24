@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:news_app/api/db_api.dart';
+import 'package:news_app/page_route_builder.dart';
+import 'package:news_app/pages/interests_page.dart';
 import 'package:news_app/pages/landing_page.dart';
 import 'package:news_app/pages/register_page.dart';
 import 'package:news_app/user_account.dart';
@@ -35,7 +38,9 @@ class LoginPageState extends State<LoginPage> {
       if (!context.mounted) return;
 
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const LandingPage()),
+        INPageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const LandingPage()),
         (Route<dynamic> route) => false,
       );
     } on AuthException catch (_) {
@@ -50,12 +55,27 @@ class LoginPageState extends State<LoginPage> {
     await UserAccount.set(account);
     await UserAccount.instance!.signIn();
 
+    final interests = await DBApi.instance!.getInterests();
     if (!context.mounted) return;
 
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => const LandingPage()),
-      (Route<dynamic> route) => false,
-    );
+    void openLandingPage(BuildContext context) =>
+        Navigator.of(context).pushAndRemoveUntil(
+          INPageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  const LandingPage()),
+          (Route<dynamic> route) => false,
+        );
+
+    if (interests == null) {
+      Navigator.of(context).push(INPageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              InterestsPage(
+                interests: null,
+                onClose: openLandingPage,
+              )));
+    } else {
+      openLandingPage(context);
+    }
   }
 
   @override
@@ -131,8 +151,9 @@ class LoginPageState extends State<LoginPage> {
                                     ? Colors.black54
                                     : Colors.white60))),
                 onPressed: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => const RegisterPage()));
+                  Navigator.of(context).push(INPageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          const RegisterPage()));
                 },
                 child: const Text('Register')),
             const SizedBox(height: 32.0),
