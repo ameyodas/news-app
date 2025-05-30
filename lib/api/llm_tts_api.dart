@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 
 class LLMApi {
   static LLMApi? instance;
@@ -88,7 +89,12 @@ class LLMAWSApi extends LLMApi {
       'text': content,
       'target_lang': targetLang
     };
-    //debugPrint(data.toString());
+
+    debugPrint(
+        "----------------------------------------------------------------------------------------------------------------------------");
+    debugPrint(data.toString());
+    debugPrint(
+        "----------------------------------------------------------------------------------------------------------------------------");
 
     for (int tryNo = 0; tryNo < numTries; ++tryNo) {
       if (_translationCache.containsKey(data) && !forceFetch) {

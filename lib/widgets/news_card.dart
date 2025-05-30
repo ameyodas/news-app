@@ -3,6 +3,7 @@ import 'package:card_loading/card_loading.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:news_app/api/db_api.dart';
+import 'package:news_app/event_bus.dart';
 import 'package:news_app/news.dart';
 import 'package:news_app/page_route_builder.dart';
 import 'package:news_app/pages/reading_page.dart';
@@ -97,11 +98,15 @@ class INNewsCardState extends State<INNewsCard> {
     _isSaved = widget.isSavedInitially;
   }
 
-  void _deleteAction() async {
+  void _saveDeleteAction() async {
     if (!_isSaved) {
       await DBApi.instance!.storeArticle(widget.news);
+      debugPrint("fire save");
+      eventBus.fire(NewsSavedEvent());
     } else {
       await DBApi.instance!.deleteArticle(widget.news.newsId);
+      debugPrint("fire delete");
+      eventBus.fire(NewsDeleteEvent());
     }
     setState(() {
       _isSaved = !_isSaved;
@@ -118,10 +123,17 @@ class INNewsCardState extends State<INNewsCard> {
                 pageBuilder: (context, animation, secondaryAnimation) =>
                     ReadingPage(
                       news: widget.news,
-                      isSavedInitially: false,
+                      isSavedInitially: _isSaved,
                     )))
             .then((result) {
+          //debugPrint("result: $result");
           if (result != null) {
+            if (result is Map<String, dynamic> &&
+                (result['saved'] ?? _isSaved) != _isSaved) {
+              setState(() {
+                _isSaved = !_isSaved;
+              });
+            }
             widget.callback?.call(result);
           }
         });
@@ -229,7 +241,7 @@ class INNewsCardState extends State<INNewsCard> {
                                 icon: Icon(_isSaved
                                     ? FluentIcons.bookmark_16_filled
                                     : FluentIcons.bookmark_16_regular),
-                                onPressed: _deleteAction),
+                                onPressed: _saveDeleteAction),
                           ),
                           IgnorePointer(
                             ignoring: false,
@@ -288,9 +300,10 @@ class INSavedNewsCardState extends State<INSavedNewsCard> {
     super.initState();
   }
 
-  void _deleteAction() async {
+  void _saveDeleteAction() async {
     await DBApi.instance!.deleteArticle(widget.news.newsId);
-    widget.callback?.call('delete ${widget.news.newsId}');
+    //widget.callback?.call('delete ${widget.news.newsId}');
+    eventBus.fire(NewsDeleteEvent());
   }
 
   @override
@@ -370,7 +383,7 @@ class INSavedNewsCardState extends State<INSavedNewsCard> {
                               iconSize: 18.0,
                               icon: const Icon(FluentIcons.delete_12_regular,
                                   color: Colors.red),
-                              onPressed: _deleteAction),
+                              onPressed: _saveDeleteAction),
                         ),
                       ],
                     ),
@@ -401,6 +414,7 @@ class INSavedNewsCardState extends State<INSavedNewsCard> {
                     ),
                     errorListener: (_) =>
                         setState(() => _imageUnloadable = true),
+                    errorWidget: (context, url, error) => Container(),
                     fit: BoxFit.cover,
                     height: 136.0,
                     width: 116.0,

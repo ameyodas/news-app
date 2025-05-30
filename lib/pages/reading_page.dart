@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:gpt_markdown/gpt_markdown.dart';
 import 'package:news_app/api/db_api.dart';
+import 'package:news_app/event_bus.dart';
 import 'package:news_app/news.dart';
 import 'package:news_app/theme.dart';
 import 'package:news_app/widgets/action_bar.dart';
@@ -69,7 +70,7 @@ class ReadingPageState extends State<ReadingPage> {
             child: IconButton(
               icon: const Icon(Icons.arrow_back_ios_rounded, size: 20.0),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop({'saved': _isSaved});
               },
             )),
         title: Row(children: [
@@ -209,11 +210,13 @@ class ReadingPageState extends State<ReadingPage> {
                       IconButton.filled(
                           isSelected: _isSaved,
                           onPressed: () async {
-                            if (_isSaved) {
+                            if (!_isSaved) {
                               await DBApi.instance!.storeArticle(widget.news);
+                              eventBus.fire(NewsSavedEvent());
                             } else {
                               await DBApi.instance!
                                   .deleteArticle(widget.news.newsId);
+                              eventBus.fire(NewsDeleteEvent());
                             }
                             setState(() => _isSaved = !_isSaved);
                           },

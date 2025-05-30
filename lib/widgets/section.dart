@@ -34,14 +34,14 @@ class SectionData {
 
 class Section extends StatelessWidget {
   final String name;
-  final String title;
+  final String? title;
   final List<INNews?> news;
   final Widget Function(BuildContext, INNews) cardBuilder;
   final void Function(dynamic)? callback;
 
   const Section(
       {required this.name,
-      required this.title,
+      this.title,
       this.news = const <INNews?>[],
       required this.cardBuilder,
       this.callback,
@@ -53,15 +53,16 @@ class Section extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 14.0, vertical: 16.0),
-            child: Text(title,
-                style: const TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18.0,
-                ))),
+        if (title != null)
+          Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14.0, vertical: 16.0),
+              child: Text(title!,
+                  style: const TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18.0,
+                  ))),
         const Divider(
           height: 1.0,
           thickness: 0.35,

@@ -1,6 +1,7 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:news_app/api/db_api.dart';
+import 'package:news_app/event_bus.dart';
 import 'package:news_app/news.dart';
 import 'package:news_app/widgets/news_card.dart';
 import 'package:news_app/widgets/section.dart';
@@ -41,6 +42,14 @@ class SavedTabState extends State<SavedTab> {
   @override
   void initState() {
     super.initState();
+    eventBus.on<NewsSavedEvent>().listen((event) {
+      debugPrint("save");
+      _beginFetchNews();
+    });
+    eventBus.on<NewsDeleteEvent>().listen((event) {
+      debugPrint("delete");
+      _beginFetchNews();
+    });
     _beginFetchNews();
   }
 

@@ -1,9 +1,9 @@
-import 'dart:math';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:news_app/api/news_provider_api.dart';
 import 'package:news_app/interests.dart';
 import 'package:news_app/news.dart';
+import 'package:news_app/widgets/animated_expansion_tile.dart';
 import 'package:news_app/widgets/chips.dart';
 import 'package:news_app/widgets/news_card.dart';
 import 'package:news_app/widgets/section.dart';
@@ -18,6 +18,8 @@ class SearchTab extends StatefulWidget {
 }
 
 class SearchTabState extends State<SearchTab> {
+  String? _sectionTitle;
+
   String? _keywords;
   List<String>? _tags;
   DateTime? _startDate;
@@ -78,11 +80,7 @@ class SearchTabState extends State<SearchTab> {
   }
 
   Widget _buildSearchOptionWidgets(BuildContext context) {
-    return ExpansionTile(
-      title: Transform.rotate(
-          angle: pi / 2.0, child: const Icon(Icons.arrow_back_ios_new_rounded)),
-      showTrailingIcon: false,
-      shape: Border.all(color: Colors.transparent),
+    return AnimatedExpansionTile(
       children: [
         Wrap(
           spacing: 8.0,
@@ -219,8 +217,11 @@ class SearchTabState extends State<SearchTab> {
                     hintText: 'Type...',
                   ),
                 ),
+                const SizedBox(
+                  height: 14.0,
+                ),
                 _buildSearchOptionWidgets(context),
-                const SizedBox(height: 20.0),
+                const SizedBox(height: 14.0),
                 Center(
                   child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
@@ -241,7 +242,10 @@ class SearchTabState extends State<SearchTab> {
                                           Brightness.light
                                       ? Colors.black54
                                       : Colors.white60))),
-                      onPressed: _beginFetchNews,
+                      onPressed: () {
+                        _sectionTitle = 'Search Results';
+                        _beginFetchNews();
+                      },
                       label: const Text('Search',
                           style: TextStyle(fontFamily: 'Montserrat')),
                       icon: const Icon(Icons.search)),
@@ -253,7 +257,7 @@ class SearchTabState extends State<SearchTab> {
           if (_news?.isNotEmpty ?? false)
             Section(
               name: 'search_results',
-              title: 'Search Results',
+              title: _sectionTitle,
               news: _news ?? const <INNews>[],
               cardBuilder: (context, news) =>
                   INNewsCard(news: news, callback: widget.callback),

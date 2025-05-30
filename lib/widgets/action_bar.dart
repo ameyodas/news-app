@@ -80,6 +80,7 @@ class ActionButtonData {
   final Icon? optionsIcon;
   final List<String>? options;
   final String? workingTitle;
+  final String? errorTitle;
   final Map<String, String> Function(String)? configBuilder;
 
   NewsAction action;
@@ -95,7 +96,8 @@ class ActionButtonData {
       this.configBuilder,
       this.optionsTitle,
       this.optionsIcon,
-      this.workingTitle});
+      this.workingTitle,
+      this.errorTitle});
 }
 
 class ActionBar extends StatefulWidget {
@@ -116,7 +118,8 @@ class ActionBar extends StatefulWidget {
 class ActionBarState extends State<ActionBar> {
   late List<ActionButtonData> _actions;
   bool _working = false;
-  String? _workingTitle;
+  bool _error = false;
+  String? _status;
 
   static const languages = {
     'Hindi • हिन्दी': 'Hindi',
@@ -153,6 +156,7 @@ class ActionBarState extends State<ActionBar> {
           inactiveIcon: const Icon(FluentIcons.filter_12_regular),
           label: 'Summarize',
           workingTitle: 'Summarizing...',
+          errorTitle: 'Summarization failed',
           action: NewsAction(onTrigger: (data, config) async {
             final summary = await LLMApi.instance!.summarize(
                 headline: data.headline,
@@ -173,7 +177,9 @@ class ActionBarState extends State<ActionBar> {
           ),
           currentOption: languages.keys.first,
           workingTitle: 'Translating...',
+          errorTitle: 'Translation failed',
           configBuilder: (option) {
+            //debugPrint("\n\n\nlanguage: ${languages[option]!}");
             return {'target_lang': languages[option]!};
           },
           action: NewsAction(onTrigger: (data, config) async {
@@ -181,8 +187,9 @@ class ActionBarState extends State<ActionBar> {
                 headline: data.headline,
                 content: data.content,
                 targetLang: config == null
-                    ? 'bengali'
-                    : (config['target_lang'] ?? 'bengali'));
+                    ? languages.values.first
+                    : (config['target_lang'] ?? languages.values.first));
+
             final result = data.cloneWith(
                 headline: translation!['headline']!,
                 content: translation['content']!);
@@ -198,16 +205,37 @@ class ActionBarState extends State<ActionBar> {
 
   Future<NewsData> _callActionsStack(NewsData newsData) async {
     setState(() => _working = true);
-    for (final actionData in _actions) {
-      if (actionData.action.enabled) {
-        setState(() => _workingTitle = actionData.workingTitle);
-        newsData = await actionData.action.call(data: newsData);
+    String? error;
+    int actionIdx = 0;
+    try {
+      for (; actionIdx < _actions.length; ++actionIdx) {
+        if (_actions[actionIdx].action.enabled) {
+          setState(
+              () => _status = _actions[actionIdx].workingTitle ?? 'Working...');
+          error = _actions[actionIdx].errorTitle;
+          newsData = await _actions[actionIdx].action.call(data: newsData);
+        }
       }
+      setState(() {
+        _status = null;
+        _working = false;
+      });
+    } catch (_) {
+      setState(() {
+        for (; actionIdx < _actions.length; ++actionIdx) {
+          _actions[actionIdx].action.enabled = false;
+        }
+        if (error != null && error.isNotEmpty) {
+          _working = false;
+          _error = true;
+          _status = error;
+          Future.delayed(const Duration(seconds: 5)).then((_) => setState(() {
+                _error = false;
+                _status = null;
+              }));
+        }
+      });
     }
-    setState(() {
-      _workingTitle = null;
-      _working = false;
-    });
     return Future.value(newsData);
   }
 
@@ -289,8 +317,7 @@ class ActionBarState extends State<ActionBar> {
             ));
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildActionButtons(BuildContext context) {
     final isLight = Theme.of(context).brightness == Brightness.light;
     final barBgCol = isLight
         ? const Color.fromARGB(255, 240, 240, 240)
@@ -300,6 +327,95 @@ class ActionBarState extends State<ActionBar> {
     final activeBtnBgCol = isLight
         ? const Color.fromARGB(255, 210, 210, 210)
         : const Color.fromARGB(255, 48, 48, 48);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: _actions
+            .map((actionData) => Container(
+                  width: 60,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: actionData.action.enabled
+                        ? activeBtnBgCol
+                        : inactiveBtnBgCol,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: IconButton.filled(
+                    padding: EdgeInsets.zero,
+                    icon: actionData.inactiveIcon,
+                    selectedIcon: actionData.activeIcon,
+                    isSelected: actionData.action.enabled,
+                    onPressed: () async {
+                      actionData.action.enabled = !actionData.action.enabled;
+                      final result = await _callActionsStack(
+                          NewsData.fromNews(widget.news));
+                      widget.onAction(result);
+                    },
+                    onLongPress: () {
+                      if (actionData.options != null &&
+                          actionData.options!.isNotEmpty) {
+                        _showOptions(actionData);
+                      }
+                    },
+                  ),
+                ))
+            .toList(),
+      ),
+    );
+  }
+
+  Widget _buildWorkingWidget(BuildContext context) {
+    return Stack(
+      children: [
+        CardLoading(
+          height: 58.0,
+          cardLoadingTheme: CardLoadingTheme(
+              colorOne: Theme.of(context).brightness == Brightness.light
+                  ? Colors.white
+                  : Colors.black,
+              colorTwo: Theme.of(context).brightness == Brightness.light
+                  ? Colors.black12
+                  : Colors.white10),
+        ),
+        Center(
+            child: Text(
+          _status ?? 'Working...',
+          style: const TextStyle(fontFamily: 'Montserrat'),
+        ))
+      ],
+    );
+  }
+
+  Widget _buildErrorWidget(BuildContext context) {
+    return Center(
+        child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          _status ?? 'Error',
+          style: const TextStyle(
+              fontFamily: 'Montserrat',
+              fontWeight: FontWeight.bold,
+              color: Colors.red),
+        ),
+        const SizedBox(
+          width: 12.0,
+        ),
+        const Icon(
+          FluentIcons.dismiss_12_filled,
+          color: Colors.red,
+        )
+      ],
+    ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isLight = Theme.of(context).brightness == Brightness.light;
+    final barBgCol = isLight
+        ? const Color.fromARGB(255, 240, 240, 240)
+        : const Color.fromARGB(255, 16, 16, 16);
 
     return AnimatedSlide(
         offset: widget.isVisible ? Offset.zero : const Offset(0, 1),
@@ -318,78 +434,18 @@ class ActionBarState extends State<ActionBar> {
                 shadowColor: isLight ? Colors.white : Colors.black,
                 color: Colors.transparent,
                 child: Container(
-                  decoration: BoxDecoration(
-                    color: barBgCol,
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  height: 58.0,
-                  padding: const EdgeInsets.symmetric(horizontal: 0.0),
-                  child: _working
-                      ? Stack(
-                          children: [
-                            CardLoading(
-                              height: 58.0,
-                              cardLoadingTheme: CardLoadingTheme(
-                                  colorOne: Theme.of(context).brightness ==
-                                          Brightness.light
-                                      ? Colors.white
-                                      : Colors.black,
-                                  colorTwo: Theme.of(context).brightness ==
-                                          Brightness.light
-                                      ? Colors.black12
-                                      : Colors.white10),
-                            ),
-                            if (_workingTitle != null &&
-                                _workingTitle!.isNotEmpty)
-                              Center(
-                                  child: Text(
-                                _workingTitle!,
-                                style:
-                                    const TextStyle(fontFamily: 'Montserrat'),
-                              ))
-                          ],
-                        )
-                      : Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: _actions
-                                .map((actionData) => Container(
-                                      width: 60,
-                                      height: 36,
-                                      decoration: BoxDecoration(
-                                        color: actionData.action.enabled
-                                            ? activeBtnBgCol
-                                            : inactiveBtnBgCol,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: IconButton.filled(
-                                        padding: EdgeInsets.zero,
-                                        icon: actionData.inactiveIcon,
-                                        selectedIcon: actionData.activeIcon,
-                                        isSelected: actionData.action.enabled,
-                                        onPressed: () async {
-                                          actionData.action.enabled =
-                                              !actionData.action.enabled;
-                                          final result =
-                                              await _callActionsStack(
-                                                  NewsData.fromNews(
-                                                      widget.news));
-                                          widget.onAction(result);
-                                        },
-                                        onLongPress: () {
-                                          if (actionData.options != null &&
-                                              actionData.options!.isNotEmpty) {
-                                            _showOptions(actionData);
-                                          }
-                                        },
-                                      ),
-                                    ))
-                                .toList(),
-                          ),
-                        ),
-                ),
+                    decoration: BoxDecoration(
+                        color: barBgCol,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: Colors.grey.withAlpha(64))),
+                    clipBehavior: Clip.antiAlias,
+                    height: 58.0,
+                    padding: const EdgeInsets.symmetric(horizontal: 0.0),
+                    child: _error
+                        ? _buildErrorWidget(context)
+                        : (_working
+                            ? _buildWorkingWidget(context)
+                            : _buildActionButtons(context))),
               ),
             ),
           ),

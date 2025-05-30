@@ -6,7 +6,7 @@ import 'package:news_app/widgets/section.dart';
 class NewsStream {
   final List<SectionData> sectionsData;
 
-  late List<int> _sectionIdxs;
+  late List<int> _sectionReadIdx;
 
   static final _rndm = Random();
   static const _maxFetches = 5;
@@ -16,7 +16,7 @@ class NewsStream {
   var _fetching = false;
 
   NewsStream({required this.sectionsData}) {
-    _sectionIdxs = sectionsData.map((_) => 0).toList();
+    _sectionReadIdx = sectionsData.map((_) => 0).toList();
   }
 
   int _pickNextSection() {
@@ -33,36 +33,59 @@ class NewsStream {
     return sectionsData.length - 1;
   }
 
+  List<INNews?> _readNewsFromStore(int sectionIdx, int count) {
+    final start = _sectionReadIdx[sectionIdx];
+    final end = min(start + count, sectionsData[sectionIdx].news.length);
+    final result = sectionsData[sectionIdx].news.sublist(start, end);
+    _sectionReadIdx[sectionIdx] = end;
+    return result;
+  }
+
+  int _newsLeftInStore(int sectionIdx) {
+    return sectionsData[sectionIdx].news.length - _sectionReadIdx[sectionIdx];
+  }
+
+  bool _canFetchMore() {
+    return _fetchCount < _maxFetches && _newsCount < _maxNewsCards;
+  }
+
+  Future<void> _fetchMore(int sectionIdx) async {
+    debugPrint("fetching more news!");
+    final newNews = await sectionsData[sectionIdx].fetcher();
+    sectionsData[sectionIdx].news.addAll(newNews);
+    _newsCount += newNews.length;
+    ++_fetchCount;
+    debugPrint("fetched ${newNews.length} more news!");
+  }
+
   Future<(String?, List<INNews?>)> fetch(int maxCount,
       [void Function(SectionData)? loadingBuilder]) async {
-    if (_fetching == true ||
-        _fetchCount >= _maxFetches ||
-        _newsCount >= _maxNewsCards) {
+    if (_fetching) {
+      debugPrint("already fetching news!");
       return Future.value((null, <INNews>[]));
     }
 
     _fetching = true;
     final fetchCount = _rndm.nextInt(maxCount - 3) + 3;
 
-    final sampleIdx = _pickNextSection();
-    loadingBuilder?.call(sectionsData[sampleIdx].clone());
+    var sampleSectionIdx = _pickNextSection();
+    loadingBuilder?.call(sectionsData[sampleSectionIdx].clone());
 
-    if (_sectionIdxs[sampleIdx] + fetchCount >=
-        sectionsData[sampleIdx].news.length) {
-      final newNews = await sectionsData[sampleIdx].fetcher();
-      sectionsData[sampleIdx].news.addAll(newNews);
-      //_sectionIdxs[sampleIdx] += newNews.length;
-      _newsCount += newNews.length;
-      ++_fetchCount;
+    final newsLeft = _newsLeftInStore(sampleSectionIdx);
+    if (newsLeft < fetchCount) {
+      if (_canFetchMore()) {
+        await _fetchMore(sampleSectionIdx);
+      } else if (newsLeft == 0) {
+        for (int idx = 0; idx < sectionsData.length; ++idx) {
+          if (_newsLeftInStore(idx) > 0) {
+            sampleSectionIdx = idx;
+            break;
+          }
+        }
+      }
     }
-
-    final newIdx = min(_sectionIdxs[sampleIdx] + fetchCount,
-        sectionsData[sampleIdx].news.length);
-    debugPrint('range: ${_sectionIdxs[sampleIdx]} - $newIdx');
-    final result =
-        sectionsData[sampleIdx].news.sublist(_sectionIdxs[sampleIdx], newIdx);
-    _sectionIdxs[sampleIdx] = newIdx;
+    final result = _readNewsFromStore(sampleSectionIdx, fetchCount);
     _fetching = false;
-    return Future.value((sectionsData[sampleIdx].title, result));
+    return Future.value((sectionsData[sampleSectionIdx].title, result));
   }
 }

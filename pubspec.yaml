@@ -45,6 +45,8 @@ dependencies:
   shared_preferences: ^2.5.3
   url_launcher: ^6.3.1
   cached_network_image: ^3.4.1
+  settings_ui: ^2.0.2
+  event_bus: ^2.0.1
 
 dev_dependencies:
   flutter_test:
