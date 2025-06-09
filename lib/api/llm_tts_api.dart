@@ -90,22 +90,17 @@ class LLMAWSApi extends LLMApi {
       'target_lang': targetLang
     };
 
-    debugPrint(
-        "----------------------------------------------------------------------------------------------------------------------------");
-    debugPrint(data.toString());
-    debugPrint(
-        "----------------------------------------------------------------------------------------------------------------------------");
-
     for (int tryNo = 0; tryNo < numTries; ++tryNo) {
       if (_translationCache.containsKey(data) && !forceFetch) {
         return Future.value(_translationCache[data]);
       }
       try {
         var response = await _dio.post('translate', data: data);
-        var translation = jsonDecode(response.data['translated_text']!);
+        var translation = response.data;
+
         translation = <String, String>{
-          'headline': translation['translated_headline']!,
-          'content': translation['translated_body']!
+          'headline': translation['translated_heading']!,
+          'content': translation['translated_text']!
         };
         _translationCache[data] = translation;
         return translation;

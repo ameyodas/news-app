@@ -179,7 +179,6 @@ class ActionBarState extends State<ActionBar> {
           workingTitle: 'Translating...',
           errorTitle: 'Translation failed',
           configBuilder: (option) {
-            //debugPrint("\n\n\nlanguage: ${languages[option]!}");
             return {'target_lang': languages[option]!};
           },
           action: NewsAction(onTrigger: (data, config) async {

@@ -94,7 +94,7 @@ class SearchTabState extends State<SearchTab> {
               textStyle: TextStyle(
                   fontSize: 14.0,
                   color: (Theme.of(context).brightness == Brightness.light &&
-                              (_tags?.contains(tag) ?? false) ||
+                              !(_tags?.contains(tag) ?? false) ||
                           (Theme.of(context).brightness == Brightness.dark &&
                               (_tags?.contains(tag) ?? false))
                       ? Colors.black87
@@ -107,15 +107,17 @@ class SearchTabState extends State<SearchTab> {
                   ? Colors.white
                   : const Color.fromARGB(255, 64, 64, 64),
               onSelected: (bool selected) {
-                if (selected) {
-                  _tags ??= <String>[];
-                  _tags!.add(tag);
-                } else {
-                  _tags?.remove(tag);
-                  if (_tags?.isEmpty ?? false) {
-                    _tags = null;
+                setState(() {
+                  if (selected) {
+                    _tags ??= <String>[];
+                    _tags!.add(tag);
+                  } else {
+                    _tags?.remove(tag);
+                    if (_tags?.isEmpty ?? false) {
+                      _tags = null;
+                    }
                   }
-                }
+                });
               },
             );
           }).toList(),
