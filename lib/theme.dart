@@ -108,9 +108,13 @@ class INTheme {
     );
   }
 
-  static ThemeMode mode = ThemeMode.dark;
+  static ValueNotifier<ThemeMode> modeNotifier =
+      ValueNotifier(ThemeMode.system);
+
   static ThemeMode toggleMode() {
-    mode = mode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
-    return mode;
+    modeNotifier.value = modeNotifier.value == ThemeMode.light
+        ? ThemeMode.dark
+        : ThemeMode.light;
+    return modeNotifier.value;
   }
 }

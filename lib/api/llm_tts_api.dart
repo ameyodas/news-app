@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 
 class LLMApi {
   static LLMApi? instance;

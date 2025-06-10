@@ -332,7 +332,7 @@ class ActionBarState extends State<ActionBar> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: _actions
             .map((actionData) => Container(
-                  width: 60,
+                  //width: 60,
                   height: 36,
                   decoration: BoxDecoration(
                     color: actionData.action.enabled
@@ -340,23 +340,42 @@ class ActionBarState extends State<ActionBar> {
                         : inactiveBtnBgCol,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: IconButton.filled(
-                    padding: EdgeInsets.zero,
-                    icon: actionData.inactiveIcon,
-                    selectedIcon: actionData.activeIcon,
-                    isSelected: actionData.action.enabled,
-                    onPressed: () async {
-                      actionData.action.enabled = !actionData.action.enabled;
-                      final result = await _callActionsStack(
-                          NewsData.fromNews(widget.news));
-                      widget.onAction(result);
-                    },
-                    onLongPress: () {
+                  child: Row(
+                    children: [
+                      IconButton.filled(
+                        padding: EdgeInsets.only(
+                            left: 15.0,
+                            right: actionData.options != null &&
+                                    actionData.options!.isNotEmpty
+                                ? 0.0
+                                : 15.0),
+                        icon: actionData.inactiveIcon,
+                        selectedIcon: actionData.activeIcon,
+                        isSelected: actionData.action.enabled,
+                        onPressed: () async {
+                          actionData.action.enabled =
+                              !actionData.action.enabled;
+                          final result = await _callActionsStack(
+                              NewsData.fromNews(widget.news));
+                          widget.onAction(result);
+                        },
+                        onLongPress: () {
+                          if (actionData.options != null &&
+                              actionData.options!.isNotEmpty) {
+                            _showOptions(actionData);
+                          }
+                        },
+                      ),
                       if (actionData.options != null &&
-                          actionData.options!.isNotEmpty) {
-                        _showOptions(actionData);
-                      }
-                    },
+                          actionData.options!.isNotEmpty)
+                        IconButton(
+                            onPressed: () => _showOptions(actionData),
+                            icon: const Icon(
+                              Icons.arrow_forward_ios_rounded,
+                              color: Colors.blue,
+                              size: 14.0,
+                            ))
+                    ],
                   ),
                 ))
             .toList(),
@@ -424,28 +443,26 @@ class ActionBarState extends State<ActionBar> {
           padding: const EdgeInsets.only(bottom: 16),
           child: Align(
             alignment: Alignment.bottomCenter,
-            child: SizedBox(
-              width: 240.0,
-              child: Material(
-                clipBehavior: Clip.antiAlias,
-                elevation: 24.0,
-                borderRadius: BorderRadius.circular(16.0),
-                shadowColor: isLight ? Colors.white : Colors.black,
-                color: Colors.transparent,
-                child: Container(
-                    decoration: BoxDecoration(
-                        color: barBgCol,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: Colors.grey.withAlpha(64))),
-                    clipBehavior: Clip.antiAlias,
-                    height: 58.0,
-                    padding: const EdgeInsets.symmetric(horizontal: 0.0),
-                    child: _error
-                        ? _buildErrorWidget(context)
-                        : (_working
-                            ? _buildWorkingWidget(context)
-                            : _buildActionButtons(context))),
-              ),
+            child: Material(
+              clipBehavior: Clip.antiAlias,
+              elevation: 24.0,
+              borderRadius: BorderRadius.circular(16.0),
+              shadowColor: isLight ? Colors.white : Colors.black,
+              color: Colors.transparent,
+              child: Container(
+                  decoration: BoxDecoration(
+                      color: barBgCol,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: Colors.grey.withAlpha(64))),
+                  clipBehavior: Clip.antiAlias,
+                  height: 58.0,
+                  width: 260.0,
+                  padding: const EdgeInsets.symmetric(horizontal: 0.0),
+                  child: _error
+                      ? _buildErrorWidget(context)
+                      : (_working
+                          ? _buildWorkingWidget(context)
+                          : _buildActionButtons(context))),
             ),
           ),
         ));

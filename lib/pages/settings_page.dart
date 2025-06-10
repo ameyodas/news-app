@@ -1,79 +1,8 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:news_app/pages/interests_page.dart';
-import 'package:news_app/pages/landing_page.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-class __SettingsPage extends StatefulWidget {
-  final void Function(dynamic)? callback;
-
-  const __SettingsPage({super.key, this.callback});
-
-  @override
-  State<__SettingsPage> createState() => __SettingsPageState();
-}
-
-class __SettingsPageState extends State<__SettingsPage> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      floatingActionButton: IconButton(
-        icon: IconButton(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          style: IconButton.styleFrom(
-              backgroundColor: Colors.white, foregroundColor: Colors.black),
-          icon: const Icon(FluentIcons.arrow_right_12_filled),
-          onPressed: () {
-            Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const LandingPage()));
-          },
-        ),
-        onPressed: () {},
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('Settings',
-                style: TextStyle(
-                    fontFamily: 'Raleway',
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold)),
-            const SizedBox(height: 32.0),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 6,
-              itemBuilder: (context, index) {
-                const items = [
-                  'Account',
-                  'Appearance',
-                  'Home',
-                  'Interests',
-                  'Reading Page',
-                  'Stats',
-                ];
-                return ListTile(
-                    title: Text(items[index],
-                        style: const TextStyle(fontFamily: 'Montserrat')));
-              },
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// class SettingsPage extends StatefulWidget {
-//   const SettingsPage({super.key});
-
-//   @override
-//   State<SettingsPage> createState() => _SettingsPageState();
-// }
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});

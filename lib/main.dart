@@ -21,13 +21,20 @@ class NewsApp extends StatefulWidget {
 class NewsAppState extends State<NewsApp> {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        title: 'InstaNews',
-        theme: INTheme.light(),
-        darkTheme: INTheme.dark(),
-        themeMode: INTheme.mode,
-        home: AuthGate(
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: INTheme.modeNotifier,
+      builder: (context, mode, _) {
+        return MaterialApp(
+          title: 'InstaNews',
+          theme: INTheme.light(),
+          darkTheme: INTheme.dark(),
+          themeMode: mode,
+          home: AuthGate(
             authWidgetBuilder: (context) => const LoginPage(),
-            landingWidgetBuilder: (context) => const LandingPage()));
+            landingWidgetBuilder: (context) => const LandingPage(),
+          ),
+        );
+      },
+    );
   }
 }
