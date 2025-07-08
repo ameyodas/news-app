@@ -1,6 +1,7 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:news_app/api/db_api.dart';
+import 'package:news_app/page_route_builder.dart';
 import 'package:news_app/pages/interests_page.dart';
 import 'package:news_app/pages/login_page.dart';
 import 'package:news_app/pages/settings_page.dart';
@@ -56,11 +57,16 @@ class AccountSwitcherDialog extends StatelessWidget {
               icon: const Icon(FluentIcons.arrow_exit_20_filled,
                   color: Colors.red),
               onPressed: () {
+                //debugPrint("signing out...");
                 Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                  INPageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          const LoginPage()),
                   (Route<dynamic> route) => false,
                 );
+                //debugPrint("pushed login page");
                 UserAccount.set(null);
+                //debugPrint("set user account to null");
               },
             ),
             onTap: () {},

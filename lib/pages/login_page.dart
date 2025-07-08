@@ -1,3 +1,4 @@
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:news_app/api/db_api.dart';
 import 'package:news_app/page_route_builder.dart';
@@ -31,10 +32,13 @@ class LoginPageState extends State<LoginPage> {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
+    var account = SupabaseAccount();
     try {
-      await UserAccount.set(SupabaseAccount());
-      await UserAccount.instance!.signIn(email: email, password: password);
+      await account.init();
+      await account.signIn(email: email, password: password);
+      await UserAccount.set(account);
 
+      final interests = await DBApi.instance!.getInterests();
       if (!context.mounted) return;
 
       Navigator.of(context).pushAndRemoveUntil(
@@ -43,10 +47,38 @@ class LoginPageState extends State<LoginPage> {
                 const LandingPage()),
         (Route<dynamic> route) => false,
       );
-    } on AuthException catch (_) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Login failed")),
-      );
+
+      if (interests == null || interests.tags.isEmpty) {
+        Navigator.of(context).push(INPageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const InterestsPage()));
+      }
+    } on AuthException catch (e) {
+      //await UserAccount.set(null);
+
+      debugPrint("Error code: ${e.code}");
+
+      final color = Theme.of(context).brightness == Brightness.light
+          ? Colors.white
+          : Colors.black;
+
+      final snackBar = SnackBar(
+          content: Row(
+            children: [
+              Icon(FluentIcons.dismiss_12_filled, color: color),
+              const SizedBox(width: 16.0),
+              Text(
+                e.message,
+                style: TextStyle(
+                    fontFamily: 'Raleway',
+                    fontWeight: FontWeight.bold,
+                    color: color),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.red);
+
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
     }
   }
 
@@ -58,23 +90,17 @@ class LoginPageState extends State<LoginPage> {
     final interests = await DBApi.instance!.getInterests();
     if (!context.mounted) return;
 
-    void openLandingPage(BuildContext context) =>
-        Navigator.of(context).pushAndRemoveUntil(
-          INPageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  const LandingPage()),
-          (Route<dynamic> route) => false,
-        );
+    Navigator.of(context).pushAndRemoveUntil(
+      INPageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const LandingPage()),
+      (Route<dynamic> route) => false,
+    );
 
-    if (interests == null) {
+    if (interests == null || interests.tags.isEmpty) {
       Navigator.of(context).push(INPageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
-              InterestsPage(
-                interests: null,
-                onClose: openLandingPage,
-              )));
-    } else {
-      openLandingPage(context);
+              const InterestsPage()));
     }
   }
 

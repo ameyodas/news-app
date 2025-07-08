@@ -21,17 +21,22 @@ class AuthGateState extends State<AuthGate> {
     super.initState();
 
     if (UserAccount.instance is SupabaseAccount) {
+      // if (UserAccount.instance?.name() == null) {
+      //   UserAccount.set(null);
+      // } else {
       Supabase.instance.client.auth.onAuthStateChange.listen((data) {
         final session = data.session;
         if (session != null) {
           setState(() {});
         }
       });
+      //}
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    //debugPrint("Is user account null: ${UserAccount.instance == null}");
     return UserAccount.instance != null
         ? widget.landingWidgetBuilder(context)
         : widget.authWidgetBuilder(context);

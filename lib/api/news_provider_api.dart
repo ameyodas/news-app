@@ -56,8 +56,8 @@ class NewsProviderApi {
   List<String> _filterTags(List<String> given, List<String> allowed) {
     final filtered = <String>[];
     for (final tag in given) {
-      if (allowed.contains(tag)) {
-        filtered.add(tag);
+      if (allowed.contains(tag.toLowerCase())) {
+        filtered.add(tag.toLowerCase());
       }
     }
     return filtered;
@@ -173,6 +173,8 @@ class WorldNewsApi extends NewsProviderApi {
       if (tags != null && tags.isNotEmpty)
         'categories': _filterTags(tags, _allowedTags).join(',')
     };
+
+    //debugPrint("categories: ${queryParameters['categories']}");
 
     try {
       final data = await _request('search-news', queryParameters,

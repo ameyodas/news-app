@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:news_app/api/db_api.dart';
 import 'package:news_app/api/llm_tts_api.dart';
 import 'package:news_app/api/news_provider_api.dart';
@@ -24,11 +25,20 @@ class UserAccount {
     }
 
     await instance?.init();
-    await instance?._apiInit();
+    if (instance?.name() == null) {
+      debugPrint("Set null");
+      await set(null);
+    } else {
+      await instance?._apiInit();
+    }
   }
 
   static Future<void> set(UserAccount? account) async {
-    await instance?.signOut();
+    try {
+      await instance?.signOut();
+    } catch (_) {
+      debugPrint("Could not sign out last user account");
+    }
     instance = account;
     await instance?.init();
     await instance?._apiInit();
@@ -90,7 +100,7 @@ class SupabaseAccount extends UserAccount {
   String type() => 'supabase';
 
   @override
-  String? name() => Supabase.instance.client.auth.currentUser!.email;
+  String? name() => Supabase.instance.client.auth.currentUser?.email;
 
   @override
   Future<void> init() async {
@@ -141,6 +151,6 @@ class SupabaseAccount extends UserAccount {
       throw const AuthException('Failed to sign up');
     }
 
-    await signIn(email: email, password: password);
+    //await signIn(email: email, password: password);
   }
 }

@@ -1,8 +1,5 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:news_app/page_route_builder.dart';
-import 'package:news_app/pages/interests_page.dart';
-import 'package:news_app/pages/landing_page.dart';
 import 'package:news_app/user_account.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -67,36 +64,83 @@ class RegisterPageState extends State<RegisterPage> {
 
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Email and password cannot be empty")),
+        SnackBar(
+            content: Text(
+              "Email and password cannot be empty",
+              style: TextStyle(
+                  fontFamily: 'Raleway',
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? Colors.white
+                      : Colors.black),
+            ),
+            backgroundColor: Colors.red),
       );
       return;
     }
 
     try {
-      await UserAccount.set(SupabaseAccount());
-      await UserAccount.instance!.signUp(email: email, password: password);
-      await UserAccount.instance!.signIn(email: email, password: password);
+      //await UserAccount.set(SupabaseAccount());
+      var account = SupabaseAccount();
+      await account.init();
+      await account.signUp(email: email, password: password);
+      //await UserAccount.instance!.signIn(email: email, password: password);
+
+      //debugPrint("context mounted: ${context.mounted}");
 
       if (!context.mounted) return;
 
-      Navigator.of(context).push(
-        INPageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) =>
-                InterestsPage(
-                  onClose: (context) =>
-                      Navigator.of(context).pushAndRemoveUntil(
-                    INPageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) =>
-                            const LandingPage()),
-                    (Route<dynamic> route) => false,
-                  ),
-                )),
-      );
-    } on AuthException catch (_) {
+      //debugPrint("Pop to login lage");
+
+      //Navigator.of(context).pop();
+
+      final color = Theme.of(context).brightness == Brightness.light
+          ? Colors.white
+          : Colors.black;
+      final snackBar = SnackBar(
+          content: Row(
+            children: [
+              Icon(FluentIcons.mail_inbox_16_filled, color: color),
+              const SizedBox(width: 16.0),
+              Text(
+                "Confirm using the email sent to you",
+                style: TextStyle(
+                    fontFamily: 'Raleway',
+                    fontWeight: FontWeight.bold,
+                    color: color),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.green);
+
+      // Show the snackbar and wait for it to close
+      ScaffoldMessenger.of(context).showSnackBar(snackBar).closed.then((_) {
+        if (context.mounted) {
+          debugPrint("pop");
+          Navigator.of(context).pop();
+        }
+      });
+    } on AuthException catch (e) {
+      debugPrint("Hello");
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Registration failed")),
-        );
+        final color = Theme.of(context).brightness == Brightness.light
+            ? Colors.white
+            : Colors.black;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Row(
+              children: [
+                Icon(FluentIcons.dismiss_12_filled, color: color),
+                const SizedBox(width: 16.0),
+                Text(
+                  e.message,
+                  style: TextStyle(
+                      fontFamily: 'Raleway',
+                      fontWeight: FontWeight.bold,
+                      color: color),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red));
       }
     }
   }
